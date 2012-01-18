@@ -1,0 +1,50 @@
+	The grid id is myGrid
+	<table>
+		<tr>
+						 <th>First Name</th>
+						 <th>Last Name</th>
+					</tr>
+				<tr>
+							<td>John</td>
+							<td>Smith</td>
+					</tr>
+				<tr>
+							<td>Jimmy</td>
+							<td>Carter</td>
+					</tr>
+				<tr>
+							<td>Jerry</td>
+							<td>Unknown Last Name</td>
+					</tr>
+			</table>
+
+--- Tab ---
+	Id: myId
+	Title: Tab Title 1
+	--- Page ---
+		Id: page1
+		Title: Page 1-1
+		Selected: true
+	--- Page ---
+		Id: page2
+		Title: Page 1-2
+		Selected: false
+
+--- Tab ---
+	Id: myId
+	Title: Tab Title 1
+				--- Common Page ---
+		Id: page1
+		Title: Page 2-1
+		Selected: true
+	
+				--- Common Page ---
+		Id: page2
+		Title: Page 2-2
+		Selected: false
+	
+	
+
+
+
+

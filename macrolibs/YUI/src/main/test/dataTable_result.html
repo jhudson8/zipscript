@@ -1,0 +1,42 @@
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="../yui_resources/build/fonts/fonts-min.css" />
+		<link rel="stylesheet" type="text/css" href="../yui_resources/build/datatable/assets/skins/sam/datatable.css" />
+
+		<script type="text/javascript" src="../yui_resources/build/yahoo-dom-event/yahoo-dom-event.js"></script>
+		<script type="text/javascript" src="../yui_resources/build/dragdrop/dragdrop-min.js"></script>
+		<script type="text/javascript" src="../yui_resources/build/element/element-beta-min.js"></script>
+		<script type="text/javascript" src="../yui_resources/build/datasource/datasource-beta-min.js"></script>
+		<script type="text/javascript" src="../yui_resources/build/datatable/datatable-beta-min.js"></script>
+	</head>
+	<body class=" yui-skin-sam">
+	<div id="myTable"></div>
+	<script language="javascript">
+		myTable_model = {
+    		data: [
+				{firstName: "Bill", lastName: "Cosby", birthday: new Date(1995, 12, 03), accounts: 8, netWorth: 1429978.76000000000931322574615478515625, someHiddenColumn: "It doesn't matter what is here"},
+				{firstName: "Bill", lastName: "Clinton", birthday: new Date(1989, 12, 03), accounts: 4, netWorth: 2875635.209999999962747097015380859375, someHiddenColumn: "It doesn't matter what is here"},
+				{firstName: "Bill", lastName: "Bixby", birthday: new Date(1975, 03, 29), accounts: 3, netWorth: 192879.77999999999883584678173065185546875, someHiddenColumn: "It doesn't matter what is here"},
+				{firstName: "Clark", lastName: "Kent", birthday: new Date(1982, 05, 11), accounts: 1, netWorth: 43987.1900000000023283064365386962890625, someHiddenColumn: "It doesn't matter what is here"}
+		]};
+		myTable_columns = [
+			{key: "firstName", label: "First Name", sortable: true, resizeable: true, width: 150},
+			{key: "lastName", label: "Last Name", sortable: true, resizeable: true, selected: true, width: 150},
+			{key: "birthday", label: "Birthday", sortable: true, resizeable: true, formatter: YAHOO.widget.DataTable.formatDate},
+			{key: "accounts", label: "# Accounts", sortable: true, resizeable: true, formatter: YAHOO.widget.DataTable.formatNumber},
+			{key: "netWorth", label: "Net Worth", sortable: true, resizeable: true, formatter: YAHOO.widget.DataTable.formatCurrency},
+			{key: "someHiddenColumn", label: "Some Hidden Column", sortable: true, resizeable: true, hidden: true}
+		];
+		dataSource = new YAHOO.util.DataSource(myTable_model.data);
+		dataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
+        dataSource.responseSchema = {fields: ["firstName", "lastName", "birthday", "accounts", "netWorth", "someHiddenColumn"]};
+        dataTable = new YAHOO.widget.DataTable("myTable", myTable_columns, dataSource);
+		dataTable.subscribe("rowMouseoverEvent", dataTable.onEventHighlightRow); 
+		dataTable.subscribe("rowMouseoutEvent", dataTable.onEventUnhighlightRow);
+ 
+
+
+	</script>
+
+	</body>
+</html>

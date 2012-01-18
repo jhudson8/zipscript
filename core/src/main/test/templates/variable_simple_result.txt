@@ -1,0 +1,65 @@
+== Formal Variables ==
+3
+foo
+foo
+foo
+	foo
+	bar
+	baz
+-><-
+
+this is a test is 14 characters long
+
+foo bar <-- we can access object paths dynamically
+
+
+== Lazy Variables ==
+3
+foo
+foo
+foo
+->  <-
+->$!myObjectNoExist<-
+
+this is a test is 14 characters long
+
+== Resources ==
+1 This is a test
+2 This is a test
+3 This is a test
+4 This is a test
+
+== Map Creation ==
+bar -- bar -- jjj
+ddd -- ddd
+
+== Sequence Creation ==
+0
+abc
+
+== Iterate through context keys ==
+	
+		
+		
+			Context Key: myString - this is a test
+		
+		
+		
+			Context Key: obj - test.hudson.zipscript.model.Obj3
+		
+			Context Key: mySequence - [abc]
+		
+			Context Key: myList - []
+		
+			Context Key: myObject - test.hudson.zipscript.model.Obj1
+		
+		
+			Context Key: fieldErrorName - foo
+		
+			Context Key: fieldErrors - {foo=abc}
+		
+			Context Key: abc - {foo=ddd, hhh=jjj}
+		
+			Context Key: dynamicPath - text
+		
+	

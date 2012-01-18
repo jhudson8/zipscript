@@ -1,0 +1,40 @@
+[#macro table | column[title key=title?humpbackCase width=null format=null selected=null] id entries rowHighlight=true]
+[#initialize]
+	[#if Global.cssIncludes!=null]
+		[#set Global.cssIncludes["datatable/assets/skins/sam/datatable.css"]="YUI"/]
+	[/#if]
+	[#if Global.scriptIncludes!=null]
+		[#set Global.scriptIncludes["datasource/datasource-beta-min.js"]="YUI"/]
+		[#set Global.scriptIncludes["datatable/datatable-beta-min.js"]="YUI"/]
+	[/#if]
+[/#initialize]
+[#set dataName = "${id}_model"/]
+[#set columnDefName = "${id}_columns"/]
+[#set tableFunction = "${id}_table"/]
+	<div id="${id}"></div>
+	<script language="javascript">
+		${dataName} = {
+    		data: [
+[#foreach entry in entries]				{[#foreach column in column]${column.key}: [#if column.format==null||column.format=="string"]"${column.body}"[#else]${column.body?js}[/#if][#if hasNext], [/#if][/#foreach]}[#if hasNext],
+[/#if]
+[/#foreach]
+
+		]};
+		${columnDefName} = [
+[#foreach column in column]
+			{key: "${column.key}", label: "${column.title}", sortable: ${column.sortable!true}, resizeable: ${resizeable!true}[#if column.hidden!=null], hidden: ${column.hidden}[/#if][#if column.selected!=null], selected: ${column.selected}[/#if][#if column.width!=null], width: ${column.width}[/#if][#if column.format!=null&&column.format!="string"], formatter: [#if column.format=="date"]YAHOO.widget.DataTable.formatDate[#elseif column.format=="currency"]YAHOO.widget.DataTable.formatCurrency[#elseif column.format=="number"]YAHOO.widget.DataTable.formatNumber[#else]${column.format}[/#if][/#if]}[#if hasNext],[/#if]
+
+[/#foreach]
+		];
+		dataSource = new YAHOO.util.DataSource(${dataName}.data);
+		dataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
+        dataSource.responseSchema = {fields: [[#foreach column in column]"${column.key}"[#if hasNext], [/#if][/#foreach]]};
+        dataTable = new YAHOO.widget.DataTable("${id}", ${columnDefName}, dataSource[#if caption!=null], {caption:"${caption}"}[/#if]);
+[#if rowHighlight]
+		dataTable.subscribe("rowMouseoverEvent", dataTable.onEventHighlightRow); 
+		dataTable.subscribe("rowMouseoutEvent", dataTable.onEventUnhighlightRow);
+[/#if] 
+
+
+	</script>
+[/#macro]

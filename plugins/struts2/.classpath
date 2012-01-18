@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" output="src/main/webapp/WEB-INF/classes" path="src/main/java"/>
+	<classpathentry kind="src" output="src/main/webapp/WEB-INF/classes" path="src/main/webapp/src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/ZipScript"/>
+	<classpathentry kind="lib" path="/lib/commons-logging-api-1.1.jar"/>
+	<classpathentry kind="lib" path="/lib/servlet-api-2.3.jar"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/struts2-core-2.0.11.2.jar" sourcepath="C:/Documents and Settings/Joe Hudson/Desktop/struts-2.0.11.2/src/core/src/main/java"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/xwork-2.0.5.jar" sourcepath="C:/Documents and Settings/Joe Hudson/Desktop/xwork-2.0.4/src/java"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

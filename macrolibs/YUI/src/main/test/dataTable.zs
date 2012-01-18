@@ -1,0 +1,8 @@
+[@data:table id="myTable" entries=people]
+	[%column title="First Name" width=150]${entry.firstName}[/%column]
+	[%column title="Last Name" width=150 selected=true]${entry.lastName}[/%column]
+	[%column title="Birthday" format="date"]${entry.birthday?jsDate}[/%column]
+	[%column title="# Accounts" format="number"]${entry.numAccounts}[/%column]
+	[%column title="Net Worth" format="currency"]${entry.netWorth}[/%column]
+	[%column title="Some Hidden Column" hidden=true]It doesn't matter what is here[/%column]
+[/@data:table]

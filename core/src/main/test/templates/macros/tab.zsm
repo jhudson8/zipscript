@@ -1,0 +1,10 @@
+[#macro pane | page[title selected=null] id title=null]
+	<div id="${id}" class="tab">
+		[#if title!=null]
+			<label>${title}</label>
+		[/#if]
+		[#foreach page in page]
+			[#call cmn.page with page/]
+		[/#foreach]
+	</div>
+[/#macro]

@@ -1,0 +1,43 @@
+[#macro autoComplete | entry[key value] name type="array" id=name value="" size=null maxLength=null style=null class=null preHighlightClassName="yui-ac-prehighlight" typeAhead=true useShadow=true minQueryLength=0]
+[#initialize]
+	[#if Global.cssIncludes!=null]
+		[#set Global.cssIncludes["autocomplete/assets/skins/sam/autocomplete.css"]="YUI"/]
+	[/#if]
+	[#if Global.scriptIncludes!=null]
+		[#set Global.scriptIncludes["yahoo-dom-event/yahoo-dom-event.js"]="YUI"/]
+		[#set Global.scriptIncludes["autocomplete/autocomplete-min.js"]="YUI"/]
+	[/#if]
+[/#initialize]
+	<div id="${id}AutoComplete">
+		<input id="${id}" type="text"[#call commonAttributes with this/]/>
+		<div id="${id}Container"></div>
+	</div>
+	<script language="javascript">
+		[#if type=="array"]
+			${id}Array = [
+				[#foreach entry in entry]
+					["${entry.key?js}", "${entry.value?js}"][#if hasNext],[/#if]
+				[/#foreach]
+			];
+			${id}ACJSArray = new function() {
+				this.oACDS = new YAHOO.widget.DS_JSArray(${id}Array);
+				this.oAutoComp = new YAHOO.widget.AutoComplete("${id}","${id}Container", this.oACDS); 
+				this.oAutoComp.prehighlightClassName = "${preHighlightClassName}";
+				this.oAutoComp.typeAhead = ${typeAhead};
+				this.oAutoComp.useShadow = ${useShadow};
+				this.oAutoComp.minQueryLength = ${minQueryLength};
+				this.oAutoComp.textboxFocusEvent.subscribe(function() { 
+					sInputValue = YAHOO.util.Dom.get(${id}).value; 
+					if(sInputValue.length == 0) { 
+						oSelf = this; 
+						setTimeout(function(){oSelf.sendQuery(sInputValue);}, 0); 
+					}
+				});
+			}
+		[/#if]
+	</script>
+[/#macro]
+
+[#macro commonAttributes | id=null name=null class=null style=null title=null onClick=null onDblClick=null onMouseDown=null onMouseUp=null onMouseOver=null onMouseMove=null onMouseOut=null onKeyPress=null onKeyDown=null onKeyUp=null]
+[#if id!=null] id="${id}"[/#if][#if name!=null] name="${name}"[/#if][#if class!=null] class="${class}"[/#if][#if style!=null] style="${style}"[/#if][#if title!=null] title="${title}"[/#if][#if title!=null] title="${title}"[/#if][#if onClick!=null] onClick="${onClick}"[/#if][#if onDblClick!=null] onDblClick="${onDblClick}"[/#if][#if onMouseDown!=null] onMouseDown="${onMouseDown}"[/#if][#if onMouseUp!=null] onMouseUp="${onMouseUp}"[/#if][#if onMouseOver!=null] onMouseOver="${onMouseOver}"[/#if][#if onMouseMove!=null] onMouseMove="${onMouseMove}"[/#if][#if onMouseOut!=null] onMouseOut="${onMouseOut}"[/#if][#if onKeyPress!=null] onKeyPress="${onKeyPress}"[/#if][#if onKeyDown!=null] onKeyDown="${onKeyDown}"[/#if][#if onKeyUp!=null] onKeyUp="${onKeyUp}"[/#if]
+[/#macro]

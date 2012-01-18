@@ -1,0 +1,32 @@
+[#macro treeNode | node[] id=null parent=null label=null icon=null isClosed=false node=null href=null tooltip=null]
+[#set nodeId="${id}_node"/]
+[#if node!=null]
+${nodeId} = new YAHOO.widget.TextNode("${label?js}", ${parent}, ${isClosed!false});
+[#foreach node in node]
+[#call treeNode with node | parent=nodeId/]
+[/#foreach]
+[#else]
+		${nodeId} = new YAHOO.widget.HTMLNode("[#if href!=null]<a href='${href?js}'>[/#if][#if tooltip!=null]<span title='${tooltip?js}'>[/#if]${label?js}[#if tooltip!=null]</span>[/#if][#if href!=null]</a>[/#if]", ${parent}, ${isClosed!false});
+[/#if]
+[/#macro]
+
+[#macro view | node[] id=null]
+[#initialize]
+	[#if Global.cssIncludes!=null]
+		[#set Global.cssIncludes["treeview/assets/skins/sam/treeview.css"]="YUI"/]
+	[/#if]
+	[#if Global.scriptIncludes!=null]
+		[#set Global.scriptIncludes["treeview/treeview-min.js"]="YUI"/]
+	[/#if]
+[/#initialize]
+[#set componentId = "${id}_component"/]
+	<div id="${id}"> </div>
+	<script language="javascript">
+		${componentId} = new YAHOO.widget.TreeView("${id}");
+		root = ${componentId}.getRoot();
+[#foreach node in node]
+[#call treeNode with node | parent="root"/]
+[/#foreach]
+		${componentId}.draw();
+	</script>
+[/#macro]

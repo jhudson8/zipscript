@@ -1,0 +1,25 @@
+[#macro view | panel[title selected=false] id=UniqueId collapsible=true width=null expandItem=null animationSpeed=null animate=null effect=null collapsible=null expandable=null hoverActivated=null]
+[#initialize]
+	[#if Global.cssIncludes!=null]
+		[#set Global.cssIncludes["accordionview/assets/skins/sam/reset-fonts.css"]="YUI"/]
+		[#set Global.cssIncludes["accordionview/assets/skins/sam/accordionview.css"]="YUI"/]
+	[/#if]
+	[#if Global.scriptIncludes!=null]
+		[#set Global.scriptIncludes["accordionview/utilities.js"]="YUI"/]
+		[#set Global.scriptIncludes["accordionview/accordionview.js"]="YUI"/]
+	[/#if]
+[/#initialize]
+	<ul id="${id}" class="yui-accordionview">
+		[#foreach panel in panel]
+			[#if panel.selected][#set expandItem=i/][/#if]
+			<li class="yui-accordion-panel"><a class="yui-accordion-toggle" href="#">${Resource(panel.title)}</a>
+				<div class="yui-accordion-content">
+					<div>$!{panel.body}</div>
+				</div>
+			</li>
+		[/#foreach]
+	</ul>
+	<script language="javascript"> 
+		new YAHOO.widget.AccordionView('${id}', {collapsible: ${collapsible}[#if width!=null], width: "${width}"[/#if][#if expandItem!=null], expandItem: ${expandItem}[/#if][#if animationSpeed!=null], animationSpeed: "${animationSpeed}"[/#if][#if animate!=null], animate: ${animate}[/#if][#if effect!=null], effect: "${effect}"[/#if][#if expandable!=null], expandable: ${expandable}[/#if][#if hoverActivated!=null], hoverActivated: ${hoverActivated}[/#if]});
+	</script>
+[/#macro]

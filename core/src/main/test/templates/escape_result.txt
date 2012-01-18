@@ -1,0 +1,23 @@
+[#set foo = "def"/]
+${foo}
+$foo
+\abc
+\abc
+\${foo}
+\$foo
+
+
+    ABC def GHI
+            jlk mno
+    
+
+http://www.google.com?abc=def&ghi=jfk
+	http://www.google.com?abc=def&amp;ghi=jfk
+			http://www.google.com?abc=def&ghi=jfk
+	
+			ab\'cd
+		ef'gh
+			ij'kl
+		mn\'op
+	
+	

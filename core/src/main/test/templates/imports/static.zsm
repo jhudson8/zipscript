@@ -1,0 +1,3 @@
+[#macro test | message]
+	This is a static test - $message
+[/#macro]

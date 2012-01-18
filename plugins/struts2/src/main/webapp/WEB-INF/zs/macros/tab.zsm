@@ -1,0 +1,25 @@
+[#macro pane | page[label active=false] id=UniqueId]
+[#initialize]
+	[#if Global.cssIncludes!=null]
+		[#set Global.cssIncludes["tabview/assets/skins/sam/tabview.css"]="YUI"/]
+	[/#if]
+	[#if Global.scriptIncludes!=null]
+		[#set Global.scriptIncludes["tabview/tabview-min.js"]="YUI"/]
+	[/#if]
+[/#initialize]
+JOE JOE2 JOE3 JOE4
+[#set componentId = "${id}_tab"/]
+	<div id="${id}"></div>
+	<script language="javascript">
+		${componentId} = new YAHOO.widget.TabView('${id}');
+[#foreach page in page]
+			${componentId}.addTab( new YAHOO.widget.Tab({
+				label: "${page.label?js}",
+				content: "${page.body?js}"[#if page.active],
+				active: true
+[/#if]
+				
+			}));
+[/#foreach]
+	</script>
+[/#macro]

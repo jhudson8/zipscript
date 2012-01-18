@@ -1,0 +1,48 @@
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="../yui_resources/build/fonts/fonts-min.css" />
+		<link rel="stylesheet" type="text/css" href="../yui_resources/build/tabview/assets/skins/sam/tabview.css" />
+
+		<script type="text/javascript" src="../yui_resources/build/yahoo-dom-event/yahoo-dom-event.js"></script>
+		<script type="text/javascript" src="../yui_resources/build/dragdrop/dragdrop-min.js"></script>
+		<script type="text/javascript" src="../yui_resources/build/element/element-beta-min.js"></script>
+		<script type="text/javascript" src="../yui_resources/build/tabview/tabview-min.js"></script>
+	</head>
+	<body class=" yui-skin-sam">
+	<div id="myTab"></div>
+	<script language="javascript">
+		myTab_tab = new YAHOO.widget.TabView('myTab');
+			myTab_tab.addTab( new YAHOO.widget.Tab({
+				label: "Some Page",
+				content: "These are the contents of some page...\r\n		<p\>\r\n			Blah blah blah...\r\n		</p\>",
+				active: true
+				
+			}));
+			myTab_tab.addTab( new YAHOO.widget.Tab({
+				label: "Page \"ABCD\"",
+				content: "This is the contents of page \"ABCD\""				
+			}));
+			myTab_tab.addTab( new YAHOO.widget.Tab({
+				label: "Page 1",
+				content: "This is the contents of page 1"				
+			}));
+			myTab_tab.addTab( new YAHOO.widget.Tab({
+				label: "Page 2",
+				content: "This is the contents of page 2"				
+			}));
+			myTab_tab.addTab( new YAHOO.widget.Tab({
+				label: "Page \"A\"",
+				content: "This is the contents of page \"A\""				
+			}));
+			myTab_tab.addTab( new YAHOO.widget.Tab({
+				label: "Page \"B\"",
+				content: "This is the contents of page \"B\""				
+			}));
+			myTab_tab.addTab( new YAHOO.widget.Tab({
+				label: "Page \"C\"",
+				content: "This is the contents of page \"C\""				
+			}));
+	</script>
+
+	</body>
+</html>

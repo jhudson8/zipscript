@@ -1,0 +1,1486 @@
+<?xml version='1.0'?>
+<!-- <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd"> -->
+<set id="zipscript">
+	<index/>
+	<title>ZipScript Docs</title>
+	<book id="userGuide">
+		<bookinfo>
+			<title>Template Author's Guide</title>
+		</bookinfo>
+		<chapter id="userGuideGettingStarted">
+			<title>Getting Started</title>
+			<para>
+				This guide is an introduction to writing templates and expression using the ZipScript language.
+			</para>
+			<section id="userGuideBasics">
+				<para>
+					If you need an HTML page that is similar to this:
+<programlisting>
+<html>
+	<head><title>My Page Title</title></head>
+	<body>
+		The error message is: "something bad happened"
+	</body>
+</html>
+</programlisting>
+					There are aspects of this output that could change depending on the situation like the title and message text.  Using the ZipScript
+					engine, you can handle situations like this by creating a template and reference context variables.  The template to reference the
+					output above would look something like this:
+<programlisting>
+<html>
+	<head><title>${title}</title></head>
+	<body>
+		The ${message.type} message is: "${message.text}"
+	</body>
+</html>
+</programlisting>
+				</para>
+				<para>
+					So what does <emphasis>${title}</emphasis>, and <emphasis>${message.type}</emphasis> and <emphasis>${message.text}</emphasis> mean?
+					When the ZipScript merge occurs, a context is used to contain the data model which will be accessed from the template.  The previous
+					template example assumes that the context has 2 entries:
+					<itemizedlist>
+						<listitem><emphasis>title</emphasis>: text equal to "My Page Title"</listitem>
+						<listitem><emphasis>message</emphasis>: A message object containing the following methods / map entries...
+							<itemizedlist>
+								<listitem><emphasis>method: getType() or map attribute: "type"</emphasis>: text equal to "error"</listitem>
+								<listitem><emphasis>method: getText() or map attribute: "text"</emphasis>: text equal to "something bad happened"</listitem>
+							</itemizedlist>
+						</listitem>
+					</itemizedlist>
+				</para>
+				<para>
+					<note>
+						You can also use $... to represent the formal syntax ${...} as long as the variable reference is separated by spaces.  Example: $message.type $message.text
+						In this document, we will refer to variables using the formal syntax.
+					</note>
+				</para>
+				<para>
+					The templates could be located anywhere including the filesystem or classpath or even remote URL's.  Several resource loaders are
+					included with ZipScript but new ones can be created if the default loaders are not adequate. 
+				</para>
+			</section>
+			<section id="userGuideDataModel">
+				<title>Data Model &amp; Variable Types</title>
+				<para>
+					Assume the following data structure:
+<programlisting>
+&gt;
+ +- myCar
+ |  |
+ |  +- model = "Honda"
+ |  |
+ |  +- numTires = 4
+ |  |
+ |  +- engine
+ |  |  |
+ |  |  +- numCylinders = 4
+ |  |  |
+ |  |  +- horsePower = 135
+ |  |
+ |  +- milesPerGalon = 35
+ |
+ +- driver
+    |
+    +- firstName = "Joe"
+    |
+    +- lastName = "Hudson"
+    |
+    +- children
+       |
+       +- (1st)
+       |  |
+       |  +- firstName = "Clark"
+       |  |
+       |  +- lastName = "Kent"
+       |
+       +- (2nd)
+          |
+          +- firstName = "Bill"
+          |
+          +- lastName = "Bixby"
+</programlisting>
+				</para>
+				<para>
+					<itemizedlist>
+						<listitem>Directory variables (ex: myCar, driver) are called <emphasis>hashes</emphasis></listitem>
+						<listitem>Collection variables (ex: children under driver) are called <emphasis>sequences</emphasis></listitem>
+						<listitem>Single-value variables (ex: model under myCar) are called <emphasis>scalars</emphasis></listitem>
+					</itemizedlist>
+				</para>
+				<para>
+					Variables can be referenced using the formal syntax <code>${...}</code> or, in most cases, the informal syntax of <code>$...</code>.
+					To reference any variable in the template the path from the root must be specified.  Each path segment
+					must be separated by a dot.  Sequences allow for additional functionality.  Because they contain a list of
+					items, indexes can be references to retrieved individual sequence elements.  The index is referenced as [0-based number].
+				</para>
+				<para>
+					The following examples reference the previously defined data model.  Note the quotation marks are used to reference output and would not actually be printed.
+<programlisting>
+${myCar.model} will print "Honda"
+${myCar.engine.numCylinders} will print "4"
+${driver.firstName} will print "Joe"
+${driver.children[0].firstName} will print "Bill"
+</programlisting>
+				</para>
+				<para>
+					Single-value can be subdivided into different groups with different special methods and formatting functions
+					<itemizedlist>
+						<listitem><emphasis>null</emphasis>: no value (<code>null</code>)</listitem>
+						<listitem><emphasis>text</emphasis>: an arbitrary sequence of characters (<code>"foo"</code>)</listitem>
+						<listitem><emphasis>number</emphasis>: any type of number (<code>123</code>)</listitem>
+						<listitem><emphasis>date</emphasis>: any type of date</listitem>
+						<listitem><emphasis>boolean</emphasis>: a true or false value (<code>true/false</code>)</listitem>
+						<listitem><emphasis>XML</emphasis>: an XML node or document</listitem>
+					</itemizedlist>
+				</para>
+			</section>
+			<section id="gettingStartedTemplateParts">
+				<title>Template Overview</title>
+				<para>
+					There are 5 syntax statements that can be used within a template which will be described in detail later in this guide:
+					<itemizedlist>
+						<listitem><emphasis>Variable Interpolation</emphasis>: Any variable reference (<code>${...} or $...</code>)</listitem>
+						<listitem><emphasis>Comment</emphasis>: A ZipScript comment which would not be printed out in merged results (<code>[## comment ##]</code>)</listitem>
+						<listitem><emphasis>Directives</emphasis>: ZipScript instructions which allow conditional evaluation, looping, etc... (<code>[#if foo] ... [/#if]</code>)</listitem>
+						<listitem><emphasis>Macros</emphasis>: A nested or flat bit of ZipScript script that can be referenced (<code>[@myMacro | ...] ... [/@myMacro]</code>)</listitem>
+						<listitem><emphasis>Template-defined Macro Parameters</emphasis>: (<code>[%myParam ...] ... [/%myParam]</code>)</listitem>
+					</itemizedlist>
+				</para>
+			</section>
+		</chapter>
+	
+		<chapter id="variables">
+			<title>Variables</title>
+			<section id="variable_overview">
+				<title>Overview</title>
+				<para>
+					Variables can be used to reference data from the context.  The standard
+					variable format is ${...}.  This will assume that a <link linkend="context">context</link> entry with
+					the key of "varName" exists.  To allow for a nonexisting <link linkend="context">context</link> entry the
+					syntax that should be used is $!{varName}.
+				</para>
+				<para>
+					Assume the <link linkend="context">context</link> value <emphasis>foo</emphasis> is equal to "abc"
+					<itemizedlist>
+						<listitem>${foo} will print <code>abc</code></listitem>
+						<listitem>${foo.length} will print <code>3</code></listitem>
+						<listitem>${foo.substring(1)} will print <code>oo</code></listitem>
+						<listitem>${foo.class.name} will print <code>java.lang.String</code></listitem>
+		      		</itemizedlist>
+		      		<itemizedlist>
+		      			<listitem>${bar} will throw an ExecutionException (assuming no "bar" entry is in the context)</listitem>
+		      			<listitem>$!{bar} will not print anything</listitem>
+		      		</itemizedlist>
+				</para>
+				<para>
+					Variables can reference boolean or math operators.
+					Assume the <link linkend="context">context</link> value <emphasis>foo</emphasis> is equal to the number 3
+					<itemizedlist>
+						<listitem>${foo+3} will print <code>6</code></listitem>
+						<listitem>${foo*3} will print <code>9</code></listitem>
+						<listitem>${foo/3} will print <code>1.0</code></listitem>
+						<listitem>${foo-3} will print <code>0</code></listitem>
+						<listitem>${foo%3} will print <code>0</code></listitem>
+						<listitem>${foo!=3} will print <code>false</code> (or evaluate to false)</listitem>
+						<listitem>${foo==3} will print <code>true</code> (or evaluate to true)</listitem>
+						<listitem>${foo&lt;4} will print <code>true</code> (or evaluate to true)</listitem>
+						<listitem>${foo&gt;=4} will print <code>false</code> (or evaluate to false)</listitem>
+					</itemizedlist>
+				</para>
+				<note>
+					For more examples, check out:
+					<itemizedlist>
+						<listitem>
+							<ulink url="http://code.google.com/p/zipscript/source/browse/trunk/core/src/main/test/test/hudson/zipscript/VariableTestCase.java">VariableTestCase.java</ulink>
+							<itemizedlist>
+								<listitem>Script reference: <ulink url="http://code.google.com/p/zipscript/source/browse/trunk/core/src/main/test/templates/variable_simple_test.zs">variable_simple_test.zs</ulink></listitem>
+								<listitem>Output reference: <ulink url="http://code.google.com/p/zipscript/source/browse/trunk/core/src/main/test/templates/variable_simple_result.txt">variable_simple_result.txt</ulink></listitem>
+							</itemizedlist>
+						</listitem>
+					</itemizedlist>
+				</note>
+			</section>
+			<section id="variable_automatic">
+				<title>Automatic Variables</title>
+				<indexterm><primary>variables</primary><secondary>automatic variables</secondary></indexterm>
+				<para>
+					There are a few variables that you don't have to put in the context and you get anyway.
+					<variablelist>
+						<indexterm><primary>variables</primary><secondary>Global</secondary></indexterm>
+						<varlistentry><term>Global</term><listitem>
+							Using ${Global.varName} or ${Global[varName]} will allow access to context variables passed to (or set in)
+							the template.  This is useful as, by default, template variables (except if defined
+							as a parameter) are not visible in the scope of a macro definition.
+						</listitem></varlistentry>
+						<indexterm><primary>variables</primary><secondary>Vars</secondary></indexterm>
+						<varlistentry><term>Vars</term><listitem>
+							Using ${Vars[varName]} allows access to variables in the context.  This is useful to
+							access variables when the variable name is only known at runtime.
+						</listitem></varlistentry>
+						<indexterm><primary>variables</primary><secondary>Vars</secondary></indexterm>
+						<varlistentry><term>Now</term><listitem>
+							The current date/time
+
+							Usage: <code>${Now} or ${Now|short}</code>	
+						</listitem></varlistentry>
+						<indexterm><primary>variables</primary><secondary>UniqueId</secondary></indexterm>
+						<varlistentry><term>UniqueId</term><listitem>
+							Returns id that will always return a uniqe value during the course of
+							a single template merge process.
+							
+							To override this functionality, use the 'uniqueIdGenerator.class'
+							init property to define a class implementing hudson.zipscript.parser.util.UniqueIdGenerator.
+							
+							Usage: <code>${UniqueId}</code>
+						</listitem></varlistentry>
+						<indexterm><primary>variables</primary><secondary>Resource</secondary></indexterm>
+						<varlistentry><term>Resource</term><listitem>
+							Used for implementing I18N bundles.  By default, it will return the provided message.
+							
+							To override this functionality, use the 'i18n.class'
+							init property to define a class implementing hudson.zipscript.parser.util.I18NResource.
+							
+							Usage: <code>${Resource("messageKey"} or ${Resource("messageKey", "param1")} or ${Resource("messageKey", {"param1", "param2", "param3"})}</code>
+						</listitem></varlistentry>
+						<indexterm><primary>variables</primary><secondary>Math</secondary></indexterm>
+						<varlistentry><term>Math</term><listitem>
+							Allows access to all java.lang.Math utility functions
+							
+							Usage: <code>${Math.random}</code>
+						</listitem></varlistentry>
+					</variablelist>
+				</para>
+			</section>
+			<section id="variable_escape">
+				<title>Variable Escaping</title>
+				<indexterm><primary>variables</primary><secondary>escaping</secondary></indexterm>
+				<para>
+					Variable references can be escaped by using the '\' prefix.  Escaping is only required if the character is next
+					to a variable or directive.  For example, assume the <link linkend="context">context</link> value <emphasis>foo</emphasis> is equal to "ABC"
+					<itemizedlist>
+						<listitem>foo\test${foo} will print <code>foo\testABC</code></listitem>
+						<listitem>foo\\test${foo} will print <code>foo\\testABC</code></listitem>
+						<listitem>test\${foo} will print <code>test${foo}</code></listitem>
+						<listitem>test\\${foo} will print <code>test\ABC</code></listitem>
+						<listitem>test\\\${foo} will print <code>test\${foo}</code></listitem> 
+					</itemizedlist>
+				</para>
+			</section>
+			<section id="variable_default">
+				<title>Default Values</title>
+				<indexterm><primary>variables</primary><secondary>defaulting</secondary></indexterm>
+				<para>
+					All variables can use the '!' token to provide a default value which will
+					be used if the requested <link linkend="context">context</link> attribute is missing.
+				</para>
+				<para>
+					Assume the <link linkend="context">context</link> value <emphasis>foo</emphasis> is missing and the
+					context value <emphasis>bar</emphasis> is equal to "Hello"
+					<itemizedlist>
+						<listitem>${foo!"Static Default Text"} will print <code>Static Default Text</code></listitem>
+						<listitem>${foo!bar} will print <code>Hello</code></listitem>
+						<listitem>${foo!somethingElseMissing!bar} will print <code>Hello</code></listitem>
+						<listitem>${foo!3} will print <code>3</code></listitem>
+						<listitem>${foo!true} will print <code>true</code></listitem>
+						<listitem>${foo!false} will print <code>false</code></listitem>
+					</itemizedlist>
+				</para>
+				<note>
+					For more examples, check out:
+					<itemizedlist>
+						<listitem>
+							<ulink url="http://code.google.com/p/zipscript/source/browse/trunk/core/src/main/test/test/hudson/zipscript/VariableDefaultsTestCase.java">VariableTestCase.java</ulink>
+						</listitem>
+					</itemizedlist>
+				</note>
+			</section>
+			<section id="variable_format">
+				<title>Formatting</title>
+				<indexterm><primary>variables</primary><secondary>formatting</secondary></indexterm>
+				<para>
+					Some variables can use the '|' token to provide formatting options.
+				</para>
+				<section id="variable_format_dates">
+					<title>Dates</title>
+					<para>
+						short/medium/long keywords are used for date formatting
+						<itemizedlist>
+							<indexterm><primary>dates</primary><secondary>formatting (short)</secondary></indexterm>
+							<listitem>${myDate|short} will print <code>01/01/2008</code></listitem>
+							<indexterm><primary>dates</primary><secondary>formatting (medium)</secondary></indexterm>
+							<listitem>${myDate|medium} will print <code>Jan 01, 2008</code></listitem>
+							<indexterm><primary>dates</primary><secondary>formatting (long)</secondary></indexterm>
+							<listitem>${myDate|long} will print <code>January 01, 2008</code></listitem>
+						</itemizedlist>
+						t_short/t_medium/t_long are used for time formatting
+						<itemizedlist>
+							<indexterm><primary>dates</primary><secondary>formatting (time short)</secondary></indexterm>
+							<listitem>${myDate|t_short} will print <code>10:37 AM</code></listitem>
+							<indexterm><primary>dates</primary><secondary>formatting (time medium)</secondary></indexterm>
+							<listitem>${myDate|t_medium} will print <code>10:37:18 AM</code></listitem>
+							<indexterm><primary>dates</primary><secondary>formatting (time long)</secondary></indexterm>
+							<listitem>${myDate|t_long} will print <code>10:37:18 AM EDT</code></listitem>
+						</itemizedlist>
+						date &amp; time formatting can be used by appending formatting styles
+						<itemizedlist>
+							<indexterm><primary>dates</primary><secondary>formatting (date and time)</secondary></indexterm>
+							<listitem>${myDate|short_long} will print <code>01/01/2008 10:37:18 AM EDT</code></listitem>
+						</itemizedlist>
+						Custom formatting can also be used
+						<itemizedlist>
+							<indexterm><primary>dates</primary><secondary>formatting (custom)</secondary></indexterm>
+							<listitem>${myDate|"yy-MM-dd"} will print <code>2008-01-01</code></listitem>
+						</itemizedlist>
+					</para>
+				<note>
+					For more examples, check out:
+					<itemizedlist>
+						<listitem>
+							<ulink url="http://code.google.com/p/zipscript/source/browse/trunk/core/src/main/test/test/hudson/zipscript/VariableFormattingTestCase.java">VariableFormattingTestCase.java</ulink>
+						</listitem>
+					</itemizedlist>
+				</note>
+				</section>
+				<section id="variable_format_numbers">
+					<title>Numbers</title>
+					<para>
+						number/currency/percent keywords are used for number formatting (using Locale)
+						<itemizedlist>
+							<listitem>${myNumber} will print <code>1234567.2</code></listitem>
+							<indexterm><primary>numbers</primary><secondary>formatting (general)</secondary></indexterm>
+							<listitem>${myNumber|number} will print <code>1,234,567.2</code></listitem>
+							<indexterm><primary>numbers</primary><secondary>formatting (currency)</secondary></indexterm>
+							<listitem>${myNumber|currency} will print <code>$1,234,567.20</code></listitem>
+							<indexterm><primary>numbers</primary><secondary>formatting (percent)</secondary></indexterm>
+							<listitem>${myNumber|percent} will print <code>123456720%</code></listitem>
+						</itemizedlist>
+						Custom formatting can also be used
+						<itemizedlist>
+							<indexterm><primary>numbers</primary><secondary>formatting (custom)</secondary></indexterm>
+							<listitem>${myNumber|"#.000"} will print <code>1234567.200</code></listitem>
+						</itemizedlist>
+					</para>
+				</section>
+			</section>
+			<section id="variable_specialMethods">
+				<title>Special Methods</title>
+				<para>
+					All variables can use the '?' token to provide special functionality.
+				</para>
+				<section id="variable_specialMethods_strings">
+					<title>Strings</title>
+					<para>
+						Assume the <link linkend="context">context</link> value "myString" is "hello world!"
+						<itemizedlist>
+							<indexterm><primary>strings</primary><secondary>?upperFirst</secondary></indexterm>
+							<listitem>${myString?upperFirst} will print <code>Hello world!</code></listitem>
+							<indexterm><primary>strings</primary><secondary>?lowerFirst</secondary></indexterm>
+							<listitem>${myString?lowerFirst} will print <code>hello world!</code></listitem>
+							<indexterm><primary>strings</primary><secondary>?lowerCase</secondary></indexterm>
+							<listitem>${myString?lowerCase} will print <code>hello world!</code></listitem>
+							<indexterm><primary>strings</primary><secondary>?isLowerCase</secondary></indexterm>
+							<listitem>${"foo"?isLowerCase} will print <code>true</code></listitem>
+							<indexterm><primary>strings</primary><secondary>?upperCase</secondary></indexterm>
+							<listitem>${myString?upperCase} will print <code>HELLO WORLD!</code></listitem>
+							<indexterm><primary>strings</primary><secondary>?isUpperCase</secondary></indexterm>
+							<listitem>${"FOO"?isUpperCase} will print <code>true</code></listitem>
+							<indexterm><primary>strings</primary><secondary>?humpbackCase</secondary></indexterm>
+							<listitem>${myString?humpbackCase} will print <code>helloWorld</code></listitem>
+							<indexterm><primary>strings</primary><secondary>?leftPad</secondary></indexterm>
+							<listitem>${myString?leftPad(2)} will print <code>  hello world!</code> (with 2 spaces on the left)</listitem>
+							<indexterm><primary>strings</primary><secondary>?rightPad</secondary></indexterm>
+							<listitem>${myString?rightPad(2)} will print <code>hello world!  </code> (with 2 spaces on the right)</listitem>
+							<indexterm><primary>strings</primary><secondary>?contains</secondary></indexterm>
+							<listitem>${myString?contains("ello")} will print <code>true</code> (or evaluate to true in an expression)</listitem>
+						</itemizedlist>
+						There are many convienance methods for dealing with text escaping
+						<itemizedlist>
+							<indexterm><primary>strings</primary><secondary>?html</secondary></indexterm>
+							<listitem>${myString?html} will escape HTML special characters</listitem>
+							<indexterm><primary>strings</primary><secondary>?js</secondary></indexterm>
+							<listitem>${myString?js} will escape javascript special characters</listitem>
+							<indexterm><primary>strings</primary><secondary>?url</secondary></indexterm>
+							<listitem>${myString?url} will escape URL special characters</listitem>
+							<indexterm><primary>strings</primary><secondary>?xml</secondary></indexterm>
+							<listitem>${myString?xml} will escape XML special characters</listitem>
+						</itemizedlist>
+						Assume the <link linkend="context">context</link> value "someClassName" is "java.lang.String"
+						<itemizedlist>
+							<indexterm><primary>strings</primary><secondary>?split</secondary></indexterm>
+							<listitem>${myString?split(".")} will return the equivalent of <code>${{"java", "lang", "String"}}</code></listitem>
+						</itemizedlist>
+					</para>
+					<note>
+						For more examples, check out:
+						<itemizedlist>
+							<listitem>
+								<ulink url="http://code.google.com/p/zipscript/source/browse/trunk/core/src/main/test/test/hudson/zipscript/SpecialMethodsTestCase.java">SpecialMethodsTestCase.java</ulink>
+							</listitem>
+						</itemizedlist>
+					</note>
+				</section>
+				<section id="variable_specialMethods_numbers">
+					<title>Numbers</title>
+					<para>
+						Assume the <link linkend="context">context</link> value "myNumber" is 3.4
+						<itemizedlist>
+							<indexterm><primary>numbers</primary><secondary>?round</secondary></indexterm>
+							<listitem>${myNumber?round} will print <code>3</code></listitem>
+							<indexterm><primary>numbers</primary><secondary>?ceiling</secondary></indexterm>
+							<listitem>${myString?ceiling} will print <code>4</code></listitem>
+							<indexterm><primary>numbers</primary><secondary>?floor</secondary></indexterm>
+							<listitem>${myString?floor} will print <code>3</code></listitem>
+						</itemizedlist>
+					</para>
+				</section>
+				<section id="variable_specialMethods_dates">
+					<title>Dates</title>
+					<para>
+						Assume the <link linkend="context">context</link> value "myDate" is the date "01/01/2008 10:37:18 AM EDT"
+						<itemizedlist>
+							<indexterm><primary>dates</primary><secondary>?jsDate</secondary></indexterm>
+							<listitem>${myDate?jsDate} will print <code>new Date(01, 01, 2008)</code></listitem>
+							<indexterm><primary>dates</primary><secondary>?jsDateTime</secondary></indexterm>
+							<listitem>${myDate?jsDateTime} will print <code>new Date(1199163600000)</code></listitem>
+						</itemizedlist>
+					</para>
+				</section>
+				<section id="variable_specialMethods_sequences">
+					<title>Sequences</title>
+					<para>
+						Assume the <link linkend="context">context</link> value "mySeq" is {"abc", "def", "ghi"}
+						<itemizedlist>
+							<indexterm><primary>sequences</primary><secondary>?contains</secondary></indexterm>
+							<listitem>${mySeq?contains("abc")} will print <code>true</code> (or evaluate to true)</listitem>
+							<indexterm><primary>sequences</primary><secondary>?first</secondary></indexterm>
+							<listitem>${mySeq?first} will print <code>abc</code></listitem>
+							<indexterm><primary>sequences</primary><secondary>?addFirst</secondary></indexterm>
+							<listitem>${mySeq?addFirst("foo")} will not print anything but will add "foo" as the first element in mySeq</listitem>
+							<indexterm><primary>sequences</primary><secondary>?last</secondary></indexterm>
+							<listitem>${mySeq?last} will print <code>ghi</code></listitem>
+							<indexterm><primary>sequences</primary><secondary>?addLast</secondary></indexterm>
+							<listitem>${mySeq?addLast("foo")} will not print anything but will add "foo" as the last element in mySeq</listitem>
+						</itemizedlist>
+					</para>
+				</section>
+				<section id="variable_specialMethods_xml">
+					<para>
+						Assume the <link linkend="context">context</link> value "myNode" is an XML node
+						<itemizedlist>
+							<indexterm><primary>xml</primary><secondary>?xpath</secondary></indexterm>
+							<listitem>${myNode?xpath("some xpath statement")} will return the appropriate scalar, hash or sequence result</listitem>
+							<indexterm><primary>xml</primary><secondary>?children</secondary></indexterm>
+							<listitem>${myNode?children} will return a sequence containing all of the children (sub-nodes) of the node</listitem>
+						</itemizedlist>
+					</para>
+				</section>
+				<section id="variable_specialMethods_is">
+					<title>Object Methods</title>
+					<para>
+						<itemizedlist>
+							<indexterm><primary>objects</primary><secondary>?isDate</secondary></indexterm>
+							<listitem>${obj?isDate} will be <code>true</code> if the value is a Date</listitem>
+							<indexterm><primary>objects</primary><secondary>?isBoolean</secondary></indexterm>
+							<listitem>${obj?isBoolean} will be <code>true</code> if the value is a boolean</listitem>
+							<indexterm><primary>objects</primary><secondary>?isString</secondary></indexterm>
+							<listitem>${obj?isString} will be <code>true</code> if the value is a String</listitem>
+							<indexterm><primary>objects</primary><secondary>?isNumber</secondary></indexterm>
+							<listitem>${obj?isNumber} will be <code>true</code> if the value is a Number</listitem>
+							<indexterm><primary>objects</primary><secondary>?isHash</secondary></indexterm>
+							<listitem>${obj?isHash} will be <code>true</code> if the value is a Hash</listitem>
+							<indexterm><primary>objects</primary><secondary>?isSequence</secondary></indexterm>
+							<listitem>${obj?isSequence} will be <code>true</code> if the value is a Sequence</listitem>
+							<indexterm><primary>objects</primary><secondary>?isXML</secondary></indexterm>
+							<listitem>${obj?isXML} will be <code>true</code> if the value is an XML node</listitem>
+						</itemizedlist>
+					</para>
+				</section>
+				<section>
+					<title>Macro Body</title>
+					<para>
+						Assume the following macro reference:
+						[@foo]
+							${someNumber}
+						[/@foo]
+						<indexterm><primary>macros</primary><secondary>?objectValue</secondary></indexterm>
+						<itemizedlist>
+							<listitem>${body?objectValue} (in the foo macro definition) will be the number that someNumber represents</listitem>
+						</itemizedlist>
+					</para>
+				</section>
+			</section>
+			<section id="variable_xml">
+				<title>XML Structures</title>
+				<indexterm><primary>variables</primary><secondary>XML</secondary></indexterm>
+				<para>
+					XML Nodes (class implementing org.w3c.Node) can be used just like other hash or sequence strucures. 
+				</para>
+				<para>
+					<itemizedlist>
+						<listitem>Node attributes can be reference using the '.' notation</listitem>
+						<listitem>Subnodes with no child nodes can be reference (like attributes) using the '.' notation</listitem>
+						<listitem>Child nodes can be accessed using [index]</listitem>
+						<listitem>Wrapped child nodes can be shortcutted with the foreach directive (see below)</listitem>
+					</itemizedlist>
+				</para>
+				Assume a Document representing the following XML structure is used as the context:
+<programlisting>
+&lt;person firstName="Joe" lastName="Hudson"&gt;
+	&lt;car numDoors="4" mpg="35"&gt;
+		&lt;manufacturer>Honda&lt;/manufacturer&gt;
+	&lt;/car&gt;
+	&lt;children&gt;
+		&lt;child age="4" firstName="Jane"/&gt;
+		&lt;child age="5" firstName="Dick"&gt;
+			&lt;friend name="Sally"/&gt;
+			&lt;friend name="Jenny"/&gt;
+			&lt;friend name="Sara"/&gt;
+		&lt;/child&gt;
+		&lt;child age="5" firstName="John"/&gt;
+	&lt;/children&gt;
+&lt;/person&gt;
+</programlisting>
+			The following template could be applied:
+<programlisting>
+${firstName} ${lastName} &lt;-- because the context is the the person node
+
+${car.numDoors} ${car.mpg} ${car.manufacturer} &lt;-- see how attributes and child nodes can be accessed the same way
+
+[#foreach child in children] &lt;-- The sequence shortcut can be applied by referencing the wrapped node names as the sequence item reference name
+	${child.firstName} ${child.age}
+	[#foreach entry in child.friend] &lt;-- This is standard sequence access with no shortcut
+		${entry.name}
+	[/#foreach]
+[/#foreach]
+
+${children.child[1]friend[2].name}
+</programlisting>
+		The following output would be created:
+<programlisting>
+Joe Hudson
+
+4 35
+
+	Jane 4
+	Dick 5
+		Sally
+		Jenny
+		Sara
+	John 5
+
+Jenny
+</programlisting>
+			</section>
+		</chapter>
+		<chapter id="directives">
+			<title>Directives</title>
+			<section id="directives_overview">
+				<title>Overview</title>
+				<para>
+					You use Zipscript tags to call directives. There are 3 kinds of tags:
+						<itemizedlist>
+							<listitem>Start tag: [#directivename parameters]</listitem>
+							<listitem>End tag: [/#directivename parameters]</listitem>
+							<listitem>Flat directive tag: [#directivename parameters/]</listitem>
+						</itemizedlist>
+				</para>
+				<para>
+					Almost all directives can have body content meaning they will have a start tag and end tag.  Directives can perform
+					actions ranging from modifying the context to performing looping or conditional statements, etc.  The parameters of
+					directives are dependant on the directive so, in the next section, the syntax of each directive will show usage.
+				</para>
+				<note>
+					When referencing directives in the directive tag (not the body) variable references should not be wrapped in ${...}.
+					See directive example usages for details.
+				</note>
+			</section>
+			<section id="directives_if">
+				<title>if, elseif, else</title>
+				Syntax:
+<programlisting>
+[#if ...]
+	...
+[#elseif ...]
+
+[#elseif ...]
+
+[/#if]
+</programlisting>
+				<para>
+					<indexterm><primary>directives</primary><secondary>if</secondary></indexterm>
+					<indexterm><primary>directives</primary><secondary>elseif</secondary></indexterm>
+					<indexterm><primary>directives</primary><secondary>else</secondary></indexterm>
+					You can use if, elseif and else directives to conditionally skip a section of the template
+					The conditions must evaluate to a boolean value, or else an error will abort template processing.
+					The elseif-s and else-s must occur inside if (that is, between the if start-tag and end-tag).
+					The if can contain any number of elseif-s (including 0) and at the end optionally one else.
+				</para>
+				<para>
+					<emphasis>Condition Options</emphasis>
+					<itemizedlist>
+						<listitem>Standard condition: <code>[#if a==b]</code></listitem>
+						<listitem>In sequence statement using 'in': <code>[#if (a in myList) || (a in {"foo", "bar","baz"})]</code></listitem>
+						<listitem>Not in sequence statement using 'not in': <code>[#if (a not in myList) || (a not in {"foo", "bar","baz"})]</code></listitem>
+					</itemizedlist>
+				</para>
+				<emphasis>Example</emphasis>
+<programlisting>
+[#if foo==${bar}]
+	This section will print if the foo <link linkend="context">context</link> variable is equal to the bar <link linkend="context">context</link> variable.  Notice that variables
+	inside directive expressions do not need to be referenced with ${} (but they can be).
+[#elseif foo=="Joe's"]
+	This section will print if the foo <link linkend="context">context</link> variable is equal to the string <code>Joe's</code>
+[#elseif foo!='Joe\'s']
+	This section will print if the foo <link linkend="context">context</link> variable is equal to the string <code>Joe's</code>.  Notice that strings
+	can be referenced with the ' character or the " character.  This is useful if the string contains either
+	of these characters.
+[#elseif foo in {1, 2d, 3f}]
+	This is a handy way of checking to see if a value is in a list.  This section will print if the foo <link linkend="context">context</link> variable
+	is equal to 1 (Integer) or 2 (Double) or 3 (Float).
+ [#elseif foo not in {"one", "two", "three"}]
+	This is a handy way of checking to see if a value is not in a list.  This section will print if the foo <link linkend="context">context</link> variable
+	is equal to the string <code>one</code> or the string <code>two</code> or the string <code>three</code>.
+[#elseif foo &gt; 3]
+	This section will print if the foo <link linkend="context">context</link> variable is greater than 3.
+[#elseif foo%2==0]
+	This section will print if foo is a number can be divided by 2 with a 0 remainder.
+[#else]
+	This section will print if none of the previous sections evaluate to true.
+[/#if]
+</programlisting>
+				<note>
+					For more examples, check out:
+					<itemizedlist>
+						<listitem>Unit Test: <ulink url="http://code.google.com/p/zipscript/source/browse/trunk/core/src/main/test/test/hudson/zipscript/DirectiveTestCase.java#108">DirectiveTestCase</ulink></listitem>
+						<listitem>Script reference: <ulink url="http://code.google.com/p/zipscript/source/browse/trunk/core/src/main/test/templates/if_test.zs">if_test.zs</ulink></listitem>
+						<listitem>Output reference: <ulink url="http://code.google.com/p/zipscript/source/browse/trunk/core/src/main/test/templates/if_result.txt">if_result.txt</ulink></listitem>
+					</itemizedlist>
+				</note>
+			</section>
+			<section id="directives_foreach">
+				<title>foreach</title>
+				<indexterm><primary>directives</primary><secondary>foreach</secondary></indexterm>
+				<indexterm><primary>directives</primary><secondary>continue</secondary></indexterm>
+				<indexterm><primary>directives</primary><secondary>break</secondary></indexterm>
+				Syntax:
+<programlisting>
+[#foreach entry in myList]
+	...
+	[#if shouldBreak]
+		[#break/]
+	[/#if]
+	[#if shouldContinue]
+		[#continue/]
+	[/#if]
+[/#foreach]
+</programlisting>
+				<para>
+					You can use the foreach directive to process a section of template for each variable contained within a sequence.
+					Variables are added to the context which is scoped to allow access to the currently entry and determine the looping state.
+					The <emphasis>continue</emphasis> directive will stop processing of the current item and continue to the next one.  The
+					<emphasis>break</emphasis> directive will stop processing of the foreach directive altogether.
+					<variablelist>
+						<varlistentry><term>varName</term><listitem>Whatever variable name was used in the foreach tag will be the context key to access the current entry</listitem></varlistentry>
+						<varlistentry><term>i</term><listitem>The current loop index</listitem></varlistentry>
+						<varlistentry><term>hasNext</term><listitem>Boolean representing if there are any remaining entries in the list to be processed</listitem></varlistentry>
+						<varlistentry><term>super</term><listitem>If inside of another loop (foreach or while), super can be used to access loop elements in the parent scope</listitem></varlistentry>
+					</variablelist>
+				</para>
+				<para>
+					Example:
+<programlisting>
+[#set someList = {"D", "E", "F"}/]
+[#foreach item in {"a", "b", "c"}]
+	[#foreach item in someList]
+		${super.item}.${item} (${super.i}.${i}) - ${hasNext} - ${super.hasNext}
+	[/#foreach]
+[/#foreach]
+</programlisting>
+Will print
+<programlisting>
+a.D (0.0) - true - true
+a.E (0.1) - true - true
+a.F (0.2) - false - true
+b.D (1.0) - true - true
+b.E (1.1) - true - true
+b.F (1.2) - false - true
+c.D (2.0) - true - false
+c.E (2.1) - true - false
+c.F (2.2) - false - false
+</programlisting>
+				</para>
+				<note>
+					For more examples, check out:
+					<itemizedlist>
+						<listitem>Unit Test: <ulink url="http://code.google.com/p/zipscript/source/browse/trunk/core/src/main/test/test/hudson/zipscript/DirectiveTestCase.java#38">DirectiveTestCase</ulink></listitem>
+						<listitem>Script reference: <ulink url="http://code.google.com/p/zipscript/source/browse/trunk/core/src/main/test/templates/foreach_test.zs">foreach_test.zs</ulink></listitem>
+						<listitem>Output reference: <ulink url="http://code.google.com/p/zipscript/source/browse/trunk/core/src/main/test/templates/foreach_result.txt">foreach_result.txt</ulink></listitem>
+						<listitem>Output reference: <ulink url="http://code.google.com/p/zipscript/source/browse/trunk/core/src/main/test/templates/foreach_result.txt">foreach_result_iter.txt</ulink></listitem>
+					</itemizedlist>
+				</note>
+			</section>
+			<section id="directives_while">
+				<title>while</title>
+				<para>
+					<indexterm><primary>directives</primary><secondary>while</secondary></indexterm>
+					<indexterm><primary>directives</primary><secondary>continue</secondary></indexterm>
+					<indexterm><primary>directives</primary><secondary>break</secondary></indexterm>
+					Syntax:
+<emphasis>
+[#while expression]
+	...
+	[#if shouldBreak]
+		[#break/]
+	[/#if]
+	[#if shouldContinue]
+		[#continue/]
+	[/#if]
+[/#while]
+</emphasis>
+					<variablelist>
+						<varlistentry><term>expression</term><listitem>Any expression which can result in a boolean value</listitem></varlistentry>
+					</variablelist>
+				</para>
+				<para>
+					The while directive can be used to loop until a condition is met.  The <emphasis>continue</emphasis> directive will stop processing of the current
+					item and continue to the next one.  The <emphasis>break</emphasis> directive will stop processing of the foreach directive altogether.
+					Variables are added to the context which is scoped to allow access to the currently entry and determine the looping state.
+					<variablelist>
+						<varlistentry><term>i</term><listitem>The current loop index</listitem></varlistentry>
+						<varlistentry><term>super</term><listitem>If  inside of another loop (foreach or while), super can be used to access loop elements in the parent scope</listitem></varlistentry>
+					</variablelist>
+					<note>hasNext is not available for a while directive</note>
+				</para>
+				<para>
+<programlisting>
+[#while i&lt;3]
+	${i+1} - ${super.hasNext}
+[/#while]
+</programlisting>
+Will print
+<programlisting>
+1 - true
+2 - true
+3 - false
+</programlisting>
+				</para>
+				<note>
+					For more examples, check out:
+					<itemizedlist>
+						<listitem>Unit Test: <ulink url="http://code.google.com/p/zipscript/source/browse/trunk/core/src/main/test/test/hudson/zipscript/DirectiveTestCase.java#80">DirectiveTestCase</ulink></listitem>
+						<listitem>Script reference: <ulink url="http://code.google.com/p/zipscript/source/browse/trunk/core/src/main/test/templates/while_test.zs">while_test.zs</ulink></listitem>
+						<listitem>Output reference: <ulink url="http://code.google.com/p/zipscript/source/browse/trunk/core/src/main/test/templates/while_result.txt">while_result.txt</ulink></listitem>
+					</itemizedlist>
+				</note>
+			</section>
+			<section id="directives_set">
+				<title>set</title>
+				<indexterm><primary>directives</primary><secondary>set</secondary></indexterm>
+				<para>
+					Syntax:
+<programlisting>
+[#set newVar = something/]
+</programlisting>
+					<variablelist>
+						<varlistentry><term>newVar</term><listitem>The <link linkend="context">context</link> key that will be used to access the variable</listitem></varlistentry>
+						<varlistentry><term>something</term><listitem>An expression or variable reference that will be set in the context</listitem></varlistentry>
+					</variablelist>
+					The set directive is used to set a value in the <link linkend="context">context</link> so it can be accessed later.  This directive is scoped so if it is used
+					inside a macro definition, the value will only be able to be reference inside the macro definition.
+				</para>
+				<para>
+					Examples:
+<programlisting>
+[#set myVar = "abc"/] - will set myVar to the string "abc"
+[#set myVar = 'abc'/] - will set myVar to the string "abc"
+[#set myVar = abc/] - will set myVar to the <link linkend="context">context</link> variable with the key of "abc"
+[#set myVar = 4!=4/] - will set myVar to the <link linkend="context">context</link> variable with false
+[#set myVar = 4==4/] - will set myVar to the <link linkend="context">context</link> variable with true
+[#set myVar = {1,2,3}/] - will set myVar to the <link linkend="context">context</link> variable with a list of element containing 1, 2, and 3
+</programlisting>
+				</para>
+				<para>
+					Set can also be used to create a new hash and set values in an existing hash:
+<programlisting>
+[#set myHash = [] /] - create a new hash and set it as the myHash context variable
+[#set myHash = [abc="foo" def="bar"] /] - create a new hash (initialized with entry abc="foo" and entry def="bar") and set it as the myHash context variable
+[#set myHash[ghi] = "baz" /] - use the key of "ghi" to set the value of "baz" on the hash retrieved from the context as "myHash"
+[#set mySequence[0] = "foo" /] - set the first element in the sequence (0 index) retrieved from the context as "mySequence"
+</programlisting>
+				</para>
+				<note>
+					For more examples, check out:
+					<itemizedlist>
+						<listitem>Unit Test: <ulink url="http://code.google.com/p/zipscript/source/browse/trunk/core/src/main/test/test/hudson/zipscript/DirectiveTestCase.java#134">DirectiveTestCase</ulink></listitem>
+						<listitem>Script reference: <ulink url="http://code.google.com/p/zipscript/source/browse/trunk/core/src/main/test/templates/foreach_test.zs">set_test.zs</ulink></listitem>
+						<listitem>Output reference: <ulink url="http://code.google.com/p/zipscript/source/browse/trunk/core/src/main/test/templates/foreach_result.txt">set_result.txt</ulink></listitem>
+					</itemizedlist>
+				</note>
+			</section>
+			<section id="directives_global">
+				<title>global</title>
+				<indexterm><primary>directives</primary><secondary>global</secondary></indexterm>
+				<para>
+					Syntax:
+<programlisting>
+[#global newVar = something/]
+</programlisting>
+					This is functionally the same as the <link linkend="directives_set">set directive</link> except that instead of the variable being scoped, it will be
+					set in a global scope.  Variables set with this directive will be available in the template as ${varName} and in a macro definition as ${Global.varName}.
+				</para>
+			</section>
+			<section id="directives_call">
+				<title>call</title>
+				<indexterm><primary>directives</primary><secondary>call</secondary></indexterm>
+				<para>
+					Syntax:
+<programlisting>
+[#macro foo param1 param2]
+	...
+	[#call bar with this | additionalParameter="abc"/]
+	...
+[/#macro]
+[#macro bar param1 param2 additionalParameter]
+	...
+[/#macro]
+</programlisting>
+					The call directive is used to pass control to another macro.  All parameters provided to the directive reference that is used with the call
+					will be accessable to the called directive.  Additionally, new parameters can be added using '|' after the call statement.  In the example above,
+					'bar' is the name of macro to call and 'this' is the reference to the current macro, 'foo'.  Other parameters that could be used instead of 'this'
+					are template-defined parameters used with the macro reference.
+				</para>
+			</section>
+			<section id="directives_import">
+				<title>import</title>
+				<indexterm><primary>directives</primary><secondary>import</secondary></indexterm>
+				<para>
+					Syntax:
+<programlisting>
+[#import importPath as macroNamespace/]
+</programlisting>
+					<itemizedlist>
+						<listitem>importPath should resolve to a string that the macro resource loader will resolve when loading the macro library.</listitem>
+						<listitem>macroNamespace should be the text of the namespace that will be used for all macros referenced from importPath.</listitem>
+					</itemizedlist>
+					The import directive will allow access to a macro library found in the referenced importPath directive parameter.
+Ex:
+<programlisting>
+[#import "macros/myMacroLib.zsm" as foo/]
+
+[@foo:someMacro] ... [/@foo:someMacro]
+</programlisting>
+				</para>
+				<note>
+					For more examples, check out:
+					<itemizedlist>
+						<listitem>Unit Test: <ulink url="http://code.google.com/p/zipscript/source/browse/trunk/core/src/main/test/test/hudson/zipscript/DirectiveTestCase.java#94">DirectiveTestCase</ulink></listitem>
+						<listitem>Script reference: <ulink url="http://code.google.com/p/zipscript/source/browse/trunk/core/src/main/test/templates/import_test.zs">import_test.zs</ulink></listitem>
+						<listitem>Output reference: <ulink url="http://code.google.com/p/zipscript/source/browse/trunk/core/src/main/test/templates/import_result.txt">import_result.txt</ulink></listitem>
+					</itemizedlist>
+				</note>
+			</section>
+			<section id="directives_include">
+				<title>include</title>
+				<indexterm><primary>directives</primary><secondary>include</secondary></indexterm>
+				<para>
+					Syntax:
+<programlisting>
+[#include includePath/]
+</programlisting>
+					<itemizedlist>
+						<listitem>includePath should resolve to a string that the include resource loader will resolve when loading the template contents.</listitem>
+					</itemizedlist>
+					The include directive will parse a template reference by the include parameter and all contents will be inserted into the template in the location
+					of the include directive.
+Ex:
+<programlisting>
+[#include "includes/myTemplate.zs"/]
+</programlisting>
+				</para>
+				<note>
+					For more examples, check out:
+					<itemizedlist>
+						<listitem>Unit Test: <ulink url="http://code.google.com/p/zipscript/source/browse/trunk/core/src/main/test/test/hudson/zipscript/DirectiveTestCase.java#86">DirectiveTestCase</ulink></listitem>
+						<listitem>Script reference: <ulink url="http://code.google.com/p/zipscript/source/browse/trunk/core/src/main/test/templates/include_test.zs">include_test.zs</ulink></listitem>
+						<listitem>Output reference: <ulink url="http://code.google.com/p/zipscript/source/browse/trunk/core/src/main/test/templates/include_result.txt">include_result.txt</ulink></listitem>
+					</itemizedlist>
+				</note>
+			</section>
+			<section id="directives_escape">
+				<title>escape, noescape</title>
+				<indexterm><primary>directives</primary><secondary>escape</secondary></indexterm>
+				<indexterm><primary>directives</primary><secondary>noescape</secondary></indexterm>
+				<para>
+					Syntax:
+<programlisting>
+[#escape escapeCommand]
+	${somethingToEscape}
+	${somethingElseToEscape}
+	[#noescape]
+		${somethingNotToEscape}
+	[/#noescape]
+[/#escape]
+</programlisting>
+					When you surround a part of the template with an escape directive, interpolations (${...}) that occur inside the block are combined with the escaping
+					expression automatically. This is a convenience method for avoiding writing similar expressions all over. The only exception to this is a reference
+					to ${body} from a macro definition.
+				</para>
+				<para>
+					Any <link linkend="variable_specialMethods_strings">string escape command</link> could be used as the escape command that does not take parameters.
+				</para>
+				<para>
+					The noescape directive is to be used inside an escape directive to "turn off" the auto-escaping.
+				</para>
+			</section>
+			<section id="directives_initialize">
+				<title>initialize</title>
+				<indexterm><primary>directives</primary><secondary>initialize</secondary></indexterm>
+					Syntax:
+<programlisting>
+[#initialize]
+	...
+[/#initialize]
+</programlisting>
+				<para>
+					This is useful for performing context modifications with <link linkend="directives_set">set</link>, <link linkend="directives_global">global</link>
+					directives inside macros that need to take effect at the beginning of template processing.
+				</para>
+				<para>
+					The primary purpose for this directive is to allow macros define required script/css includes in an initialize method for them to be available
+					when rendering the &lt;head&gt; node because normally the macros wouldn't have been processed at the time of &lt;head&gt; creation.
+				</para>
+			</section>
+		</chapter>
+		<chapter id="macros">
+			<title>Macros</title>
+			<section id="macros_overview">
+				<title>Overview</title>
+				<para>
+					Macros are ZipScript code that can be referenced in templates using a directive-like syntax.  Macros are defined using the <code>[#macro macroName | parameters]</code>
+					syntax and executed using the <code>[@macroName parameters] ... [/@macroName]</code> syntax.
+				</para>
+				<para>
+					While the macro definition must have a start and end tag <code>[#macro ...] ... [/#macro]</code>, it is not necessary for the reference <code>[@macroName .../]</code>
+					to have a body.  Macros can contain interpolations, plain text, comments, other macros, and template defined parameters.
+				</para>
+				<para>
+					All macro definitions have the ability to accept parameters.  Parameters can either be passed or defined within the macro reference (known as a template-defined parameter).
+					All required parameters must be defined before (leftmost) all optional parameters.
+					<itemizedlist>
+						<listitem>If macro parameters are defined, the '|' character should be leftmost of all parameter definitions</listitem>
+						<listitem>All template-defined parameters must be defined before all passed parameters</listitem>
+						<listitem>All required passed parameters must be defined before all defaulted passed parameters</listitem>
+						<listitem>Required parameters must have no default</listitem>
+						<listitem>Template-defined parameters must have a suffix of '[' <emphasis>template-defined parameter parameters</emphasis> ']'</listitem>
+						<listitem>Optional parameters must have the format of <code>paramName=null</code></listitem>
+						<listitem>Defaulted parameters must have the format of <code>paramName=defaultValue</code></listitem>
+						<listitem>All additional parameters should be separated by a space</listitem>
+					</itemizedlist>
+				</para>
+				Example Macro Definition:
+<programlisting>
+[#macro macroName | templateDefinedParameter[tdpRequiredParam tdpOptionalParam=null] requiredParam1 requiredParam2 optionalParam1=null optionalParamWithDefault=true]
+	- Required parameters will always exist ${requiredParam1} - ${requiredParam2}
+	- Optional parameters with no defaults should be referenced carefully ${optionalParam1|"-SOME DEFAULT-"} or $!{optionalParam1}
+	- Optional parameters with defaults will always exist ${optionalParamWithDefault}
+
+	Template-defined parameters can be accessed in a sequence
+	[#foreach entry in templateDefinedParameter]
+		Parameters of template defined parameters can be accessed using '.': ${entry.tdpRequiredParam} - ${entry.tdpOptionalParam!"foo"}
+		Template defined parameter body content can be accessed using  'body': ${entry.body}
+	[/#foreach]
+
+	The first template-defined parameter can be accessed directly by name
+	${templateDefinedParameter.tdpRequiredParam} - ${templateDefinedParameter.tdpOptionalParam!"bar"}
+
+	Macro body content can be accessed using ${body}
+[/#macro]
+</programlisting>
+				Example Macro Reference:
+<programlisting>
+[@macroName requiredParam1="ABC" requiredParam2="DEF"]
+	MAIN MACRO BODY
+	
+	[%templateDefinedParameter tdpRequiredParam="TDP 1"] TDP 1 BODY [/%templateDefinedParameter]
+	[%templateDefinedParameter tdpRequiredParam="TDP 2"] TDP 2 BODY [/%templateDefinedParameter]
+[/@macroName]
+</programlisting>
+				Example Output:
+<programlisting>
+	Required parameters will always exist ABC - DEF
+	Optional parameters with no defaults should be referenced carefully -SOME DEFAULT- or 
+	Optional parameters with defaults will always exist true
+
+	Template-defined parameters can be accessed in a sequence
+			Parameters of template defined parameters can be accessed using '.': TDP 1 - foo
+		Template defined parameter body content can be accessed using  'body': TDP 1 BODY
+			Parameters of template defined parameters can be accessed using '.': TDP 2 - foo
+		Template defined parameter body content can be accessed using  'body': TDP 2 BODY
+	
+	The template-defined parameter can only be accessed directly without looping if there is one
+	Otherwise, use the sequence index syntax
+	TDP 1 - bar
+
+	Macro body content can be accessed using MAIN MACRO BODY
+</programlisting>
+			</section>
+			<section id="macros_definition">
+				<title>Definition</title>
+				<para>
+					The syntax of a flat macro reference is:
+<programlisting>
+[@someMacro requiredParam1="foo"/]  &lt;-- named attribute access
+</programlisting>
+					The syntax of a nested macro reference is:
+<programlisting>
+[@someMacro "foo"]  &lt;-- ordinal attribute access
+   This is the macro body
+[/@someMacro]
+</programlisting>
+				</para>
+			</section>
+			<section id="macros_referencing">
+				<title>Macro Referencing</title>
+				<para>
+					Unlike other directives, macros are referenced using the '@' character instead of the '#' character.
+					Macros references can pass parameters ordinally or by name (more like an XML format).
+<emphasis>Reference with named parameters</emphasis>
+<programlisting>
+[@myMacro requiredParam1=someContextVar requiredParam2="foo" optionalStringParam="bar" optionalContextParam=someVar]
+	The content here can be referenced in the definition using the ${body} variable
+[/@myMacro]
+</programlisting>
+<emphasis>Reference with ordinal parameters</emphasis>
+<programlisting>
+[@myMacro someContextVar "foo" "bar" null null someVar]
+	The content here can be referenced in the definition using the ${body} variable
+[/@myMacro]
+</programlisting>
+				</para>
+				<section id="macros_parameters_template">
+					<title>Template-defined Parameters</title>
+					<para>
+						The real power of the macros is the ability to provide template-defined parameters that are defined within the body of the
+						macro reference which can be evaluated programatically inside the macro definition.  Template-defined parameters use the same
+						format as a standard macro reference with '@' replaced with '%'.
+						<itemizedlist>
+							<listitem>Template-defined parameters must be defined as parameters with the suffix of [...template defined parameter definitions...] for the macro definition.</listitem>
+							<listitem>Template-defined parameters must not have a namespace reference (no ':' in the macro name)</listitem>
+						</itemizedlist>
+						See the following macro reference:
+<programlisting>
+[@tab:pane id="myTab"]
+	[%page title="Page 1" visible=true]
+		Page 1 contents
+	[/%page]
+	[%page title="Page 2"]
+		Page 2 contents
+	[/%page]
+[/@tab:pane]
+</programlisting>
+						Notice that even though the pane macro is in the tab namespace, the page template-defined parameters do not reference the namespace.
+						Now, see the macro definition (which would be in the tab macro library) 
+<programlisting>
+[#macro pane | page[title id=title?humpbackCase visible=false] id]
+	&lt;div id="${id}" class="tab"&gt;
+		[#foreach page in page]
+			&lt;div id="${page.id}" class="page" [#if visible==false]style="display: none"[/#if]"&gt;
+				&lt;label&gt;${page.title}&lt;/label&gt;
+				$!{page.body}
+			&lt;/div&gt;
+		[/#foreach]
+	&lt;/div&gt;
+[/#macro]
+</programlisting>
+This is what the output would be (I've changed the spacing for readability)
+<programlisting>
+&lt;div id="myTab" class="tab"&gt;
+	&lt;div id="page1" class="page"&gt;
+		Page 1 contents
+	&lt;/div&gt;
+	&lt;div id="page2" class="page" style="display: none"&gt;
+		Page 2 contents
+	&lt;/div&gt;
+&lt;/div&gt;
+</programlisting>
+					</para>
+				</section>
+				<section>
+					<title>Common Template-defined Parameters</title>
+					<para>
+						With the introduction of template-defined parameters, it is beneficial to be able to externalize common template-defined parameters.  This can be
+						done by reference template-defined parameters in a macro with the <code>[.@...</code> syntax.
+					</para>
+					<para>
+						In this reference the commonPages macro is not a template-defined parameter but a standard macro reference with will include template defined parameters. 
+This is what the output would be (I've changed the spacing for readability)
+<programlisting>
+[@tab:pane id="myTab"]
+	[@tab:commonPages/]
+[/@tab:pane]
+</programlisting>
+						Notice that the pane macro has not changed since the previous example.  We have just added the commonPages macro to this library.
+<programlisting>
+[#macro pane | page[title id=title?humpbackCase visible=false] id]
+	&lt;div id="${id}" class="tab"&gt;
+		[#foreach page in page]
+			&lt;div id="${page.id}" class="page" [#if visible==false]style="display: none"[/#if]"&gt;
+				&lt;label&gt;${page.title}&lt;/label&gt;
+				$!{page.body}
+			&lt;/div&gt;
+		[/#foreach]
+	&lt;/div&gt;
+[/#macro]
+
+[#macro commonPages]
+	[.%page title="Page 1" visible=true]
+		Page 1 contents
+	[/.%page]
+	[.%page title="Page 2"]
+		Page 2 contents
+	[/.%page]
+[/#macro]
+</programlisting>
+And, the output is the same as before
+<programlisting>
+&lt;div id="myTab" class="tab"&gt;
+	&lt;div id="page1" class="page"&gt;
+		Page 1 contents
+	&lt;/div&gt;
+	&lt;div id="page2" class="page" style="display: none"&gt;
+		Page 2 contents
+	&lt;/div&gt;
+&lt;/div&gt;
+</programlisting>
+					</para>
+				</section>
+			</section>
+			<section id="macros_libraries">
+				<title>Macro Libraries</title>
+				<para>
+					Macro libraries can group similar macros in the same namespace.  A macro library is a file (usually ending with .zsm) which only contains
+					macro definitions.  These macro libraries can be imported using the API using the following syntax:
+<programlisting>
+ZipEngine engine = ZipEngine.createInstance();
+engine.addMacroLibrary(namespace, resourceName);
+</programlisting>
+or
+<programlisting>
+ZipEngine engine = ZipEngine.createInstance();
+engine.addMacroLibrary(new File("path to resource or directory"));
+</programlisting>
+				</para>
+				Referencing macros defined in a macro library requires the namespace to be added to the reference name.  For example, if the "foo" macro 
+				was defined in a macro library imported to the "abc" namespace, a reference to that macro would use the following syntax:
+<programlisting>
+[@abc.foo ...] [/@abc.foo]
+</programlisting>
+				Any macros that are defined within a macro library do not need to refer to any other macros defined in the same library with a namespace.
+			</section>
+		</chapter>
+	</book>
+	<book id="developersGuide">
+		<bookinfo>
+			<title>ZipScript Developers Guide</title>
+		</bookinfo>
+		<chapter id="developersGuide_templatesEvaluators">
+			<title>Templates and Evaluators</title>
+			<section id="te_overview">
+				<title>Overview</title>
+				<para>
+					With ZipScript, you can do more than just merge a data model with a
+					static template.  You can also evaluate expressions to retrieve boolean
+					or object values.
+				</para>
+				<para>
+					This can be useful in situations like storing conditional logic in static
+					properties files or representing runtime data with static templates.  Most
+					applications use properties files or xml which, with ZipScript, can be used
+					in a much more powerful and meaningful way.
+				</para>
+			</section>
+			<section id="te_merging">
+				<title>Merging</title>
+				<indexterm><primary>templates</primary><secondary>merging</secondary></indexterm>
+				<para>
+					Like other script engines, ZipScript can merge a static template with a data
+					model.  The syntax for this is as follows:
+<programlisting>
+import hudson.zipscript.ZipEngine;
+import hudson.zipscript.template.Template;
+...
+// initialize
+ZipEngine engine = ZipEngine.createInstance(initProperties);
+// parse the resource and retrieve the template
+Template t = zipEngine.getTemplate("someTemplateName.zs");
+// create the context and execute
+Map context = new HashMap();
+context.put("foo", "bar");
+// merge the object model with the template
+String mergedResult = t.merge(context);
+</programlisting>
+				</para>
+			</section>
+			<section id="te_booleans">
+				<title>Evaluating Booleans</title>
+				<indexterm><primary>booleans</primary><secondary>evaluation</secondary></indexterm>
+				<para>
+					Boolean values can be evaluated from ZipScript expressions.  The syntax is as
+					follows:
+<programlisting>
+import hudson.zipscript.ZipEngine;
+import hudson.zipscript.template.Evaluator;
+...
+// initialize
+ZipEngine zipEngine = ZipEngine.createInstance(initProperties);
+// parse the resource and retrieve the template
+Evaluator e = zipEngine.getEvaluator(conditionalStatement);
+// create the context and execute
+Map context = new HashMap();
+context.put("foo", "bar");
+// merge the object model with the evaluator to get the boolean value
+boolean rtn = e.booleanValue(context);
+</programlisting>
+				</para>
+			</section>
+			<section id="te_objects">
+				<title>Evaluating Objects</title>
+				<indexterm><primary>objects</primary><secondary>evaluation</secondary></indexterm>
+				<para>
+					Java Objects can be evaluated from ZipScript expressions.  The syntax is as
+					follows:
+<programlisting>
+import hudson.zipscript.ZipEngine;
+import hudson.zipscript.template.Evaluator;
+...
+// initialize
+ZipEngine zipEngine = ZipEngine.createInstance(initProperties);
+// parse the resource and retrieve the template
+Evaluator e = ZipEngine.getInstance().getEvaluator(conditionalStatement);
+// create the context and execute
+Map context = new HashMap();
+context.put("foo", "bar");
+// merge the object model with the evaluator to get the object value
+Object rtn = e.objectValue(context);
+</programlisting>
+				</para>
+			</section>
+		</chapter>
+		<chapter id="developersGuide_resourceLoading">
+			<title>Resource Loading</title>
+			<indexterm><primary>resource</primary><secondary>loading</secondary></indexterm>
+			<section id="resourceLoading_overview">
+				<title>Overview</title>
+				<para>
+					Templates, evaluators, and macro libraries must be loaded by some resource loader.  If the ZipEngine is initialized
+					with no properties, the following behavior will be used:
+					<variablelist>
+						<varlistentry><term>Template merging</term><listitem>Classpath resource files are retrieved</listitem></varlistentry>
+						<varlistentry><term>Boolean evaluation</term><listitem>The parameter passed with ZipEngine.getEvaluator(String) is used as the actual ZipScript expression</listitem></varlistentry>
+						<varlistentry><term>Object evaluation</term><listitem>The parameter passed with ZipEngine.getEvaluator(String) is used as the actual ZipScript expression</listitem></varlistentry>
+						<varlistentry><term>Macro library retrieval</term><listitem>Classpath resource files are retrieved</listitem></varlistentry>
+						<varlistentry><term>Include resource loading</term><listitem>Classpath resource files are retrieved</listitem></varlistentry>
+						includeResourceLoader
+					</variablelist>
+				</para>
+			</section>
+			<section id="developersGuide_resourceLoaders">
+				<title>Resource Loaders</title>
+				<para>
+					The following resource loaders are available.  When specifying a resource loader 2 differnt types of init properties can be used:
+					<itemizedlist>
+						<listitem>{resource loader type}.class: Any class which implements hudson.zipscript.resource.ResourceLoader</listitem>
+						<listitem>{resource loader type}.type: 'classpath', 'file', 'url', or 'string'</listitem>
+					</itemizedlist>
+				</para>
+				<para>
+					If the '{resource loader type}.type' property is used, one of the following resource loaders will be used
+					<variablelist>
+						<varlistentry><term>classpath</term><listitem><link linkend="ClasspathResourceLoader">ClasspathResourceLoader</link></listitem></varlistentry>
+						<varlistentry><term>file</term><listitem><link linkend="FileResourceLoader">FileResourceLoader</link></listitem></varlistentry>
+						<varlistentry><term>url</term><listitem><link linkend="URLResourceLoader">URLResourceLoader</link></listitem></varlistentry>
+						<varlistentry><term>string</term><listitem><link linkend="StringResourceLoader">StringResourceLoader</link></listitem></varlistentry>
+						<varlistentry><term>WEB-INF</term><listitem><link linkend="WebInfResourceLoader">WebInfResourceLoader</link></listitem></varlistentry>
+					</variablelist>
+				</para>
+				<para>
+					The following property prefixes are used for different resource loading:
+					<variablelist>
+						<varlistentry><term>templateResourceLoader</term><listitem>Resource loading for templates</listitem></varlistentry>
+						<varlistentry><term>macroLibResourceLoader</term><listitem>Resource loading for macro libraries</listitem></varlistentry>
+						<varlistentry><term>evalResourceLoader</term><listitem>Resource loading for evaluators</listitem></varlistentry>
+						<varlistentry><term>includeResourceLoader</term><listitem>Resource loading for template includes (using [#include ...] directive)</listitem></varlistentry>
+					</variablelist>
+				</para>
+				Example:
+<programlisting>
+templateResourceLoader.type=file
+macroLibResourceLoader.class=my.custom.FileResourceLoader
+evalResourceLoader.type=string
+includeResourceLoader.type=classpath
+</programlisting>
+				<note>
+					Resource loaders will refer to parameters that can be supplied.  All parameters must be prefixed with the appropriate resource loader prefix.
+					An example would be:
+					<para>
+						<code>
+							templateResourceLoader.type=file
+							templateResourceLoader.pathPrefix=/tmp/zsFiles/
+						</code>
+					</para>
+				</note>
+				<section id="StringResourceLoader">
+					<title>StringResourceLoader</title>
+					<para>
+						<code>hudson.zipscript.resource.StringResourceLoader</code>: Use the getTemplate/getEvaluator parameter directly as the resource
+					</para>
+					<para>
+						Example:
+
+<programlisting>
+zipEngine.getTemplate("[#foreach foo in bar]${foo.name}[/#foreach]");
+</programlisting>
+					</para>
+				</section>
+				<section id="WebInfResourceLoader">
+					<title>ClasspathResourceLoader</title>
+					<para>
+						<code>hudson.zipscript.resource.WebInfResourceLoader</code>: Loads a resource from the servlet WEB-INF directory.
+					</para>
+					<para>
+						Init properties:
+						<variablelist>
+							<varlistentry><term>pathPrefix</term><listitem>Prefix to append to all resourceses</listitem></varlistentry>
+						</variablelist>
+					</para>
+					<para>
+						The servlet context must me used with this resource loader and it can be passed in 1 of 2 ways:
+						<itemizedlist>
+							<listitem>WebInfResource loader constructor with zipEngine.set...ResourceLoader(ResourceLoader)</listitem>
+							<listitem>Use the template.merge(context, servletContext) method</listitem>
+						</itemizedlist>
+					</para>
+				</section>
+				<section id="ClasspathResourceLoader">
+					<title>ClasspathResourceLoader</title>
+					<para>
+						<code>hudson.zipscript.resource.ClasspathResourceLoader</code>: Loads a resource from the classpath.
+					</para>
+					<para>
+						Init properties:
+						<variablelist>
+							<varlistentry><term>pathPrefix</term><listitem>Prefix to append to all resourceses</listitem></varlistentry>
+						</variablelist>
+					</para>
+				</section>
+				<section id="FileResourceLoader">
+					<title>FileResourceLoader</title>
+					<para>
+						<code>hudson.zipscript.resource.FileResourceLoader</code>: Loads a resource from the filesystem.
+					</para>
+					<para>
+						Init properties:
+						<variablelist>
+							<varlistentry><term>pathPrefix</term><listitem>Prefix to append to all resourceses</listitem></varlistentry>
+						</variablelist>
+					</para>
+				</section>
+				<section id="URLResourceLoader">
+					<title>URLResourceLoader</title>
+					<para>
+						<code>hudson.zipscript.resource.URLResourceLoader</code>: Loads a resource from a URL.
+					</para>
+					<para>
+						Init properties:
+						<variablelist>
+							<varlistentry><term>pathPrefix</term><listitem>Prefix to append to all resourceses</listitem></varlistentry>
+						</variablelist>
+					</para>
+				</section>
+			</section>
+			<section id="resourceLoading_templates">
+				<title>Templates</title>
+				<indexterm><primary>resource</primary><secondary>templates</secondary></indexterm>
+				<para>
+					The following property can be used to set the template resource loader:
+					<varlistentry><term>templateResourceLoader.class</term><listitem>classname implementing hudson.zipscript.resource.ResourceLoader</listitem></varlistentry>
+					<varlistentry><term>templateResourceLoader.type</term><listitem>'classpath', 'file', 'url', or 'string'</listitem></varlistentry>
+				</para>
+			</section>
+			<section id="resourceLoading_evaluators">
+				<title>Evaluators</title>
+				<indexterm><primary>resource</primary><secondary>evaluator</secondary></indexterm>
+				<para>
+					The following property can be used to set the evaluator resource loader:
+					<varlistentry><term>evalResourceLoader.class</term><listitem>classname implementing hudson.zipscript.resource.ResourceLoader</listitem></varlistentry>
+					<varlistentry><term>evalResourceLoader.type</term><listitem>'classpath', 'file', 'url', or 'string'</listitem></varlistentry>
+				</para>
+			</section>
+			<section id="resourceLoading_macros">
+				<title>Macros</title>
+				<indexterm><primary>resource</primary><secondary>macros</secondary></indexterm>
+				<para>
+					By default, the macro resource loader will be the same as the template resource loader.  The following property can be used to set the macro resource loader:
+					<varlistentry><term>macroLibResourceLoader.class</term><listitem>classname implementing hudson.zipscript.resource.ResourceLoader</listitem></varlistentry>
+					<varlistentry><term>macroLibResourceLoader.type</term><listitem>'classpath', 'file', 'url', or 'string'</listitem></varlistentry>
+				</para>
+			</section>
+			<section id="resourceLoading_includes">
+				<title>Includes</title>
+				<indexterm><primary>resource</primary><secondary>includes</secondary></indexterm>
+				<para>
+					By default, the include resource loader will be the same as the template resource loader.  The following property can be used to set the macro resource loader:
+					<varlistentry><term>includeResourceLoader.class</term><listitem>classname implementing hudson.zipscript.resource.ResourceLoader</listitem></varlistentry>
+					<varlistentry><term>includeResourceLoader.type</term><listitem>'classpath', 'file', 'url', or 'string'</listitem></varlistentry>
+				</para>
+			</section>
+		</chapter>
+		<chapter id="context">
+			<title>Context</title>
+			<section id="context_overview">
+				<title>Overview</title>
+				A context is used to contain data referenced with the ZipScript template.  The context can literally be anything as the parameter type is java.lang.Object.
+			</section>
+			<section id="context_map">
+				<title>Map Context</title>
+				Using a <code>java.util.map</code> as the context will allow variable references to retrieved data from the map with the matching key.  Since the '.' character
+				is normally used to represent a separation of object and property a separate naming procedure must be used for Map keys that contain this character.  Assuming
+				a map entry with the key of 'foo.bar' exists, this can be retrieved using the variable format ${'foo.bar'}.
+			</section>
+			<section id="context_xml">
+				<title>XML Context</title>
+				An XML document can be passed directly to the merge template method to be used as the context (or can be referenced as a property of some other context object).
+				See <link linkend="variable_xml">XML variable section</link> to understand how to work with an XML structure (basically it works the way you would think it would work).
+			</section>
+			<section id="context_object">
+				<title>Object</title>
+				The object getter methods can be referenced directly with variables.  For example if an object with a getFoo() method was used as the context, the variable
+				${foo} can be used to access this property.  The set directive will try to find a set method to match.  If none is found, a separate datastore is used to
+				contain the value.
+			</section>
+			<section id="context_custom">
+				<title>Implemting Your Own</title>
+				To provide your own context functionality, you need to use an object which implements <code>hudson.zipscript.parser.context.Context</code>.
+			</section>
+		</chapter>
+		<chapter id="properties">
+			<title>Init Properties</title>
+			<para>
+				Listed below are all the init properties that affect ZipScript operation
+				<variablelist>
+					<varlistentry><term>templateResourceLoader.*</term><listitem>Template resource loader properties</listitem></varlistentry>
+					<varlistentry><term>evalResourceLoader.*</term><listitem>Evaluator resource loader properties</listitem></varlistentry>
+					<varlistentry><term>macroLibResourceLoader.*</term><listitem>Macro library resource loader properties</listitem></varlistentry>
+					<varlistentry><term>includeResourceLoader.*</term><listitem>Includes resource loader properties</listitem></varlistentry>
+					<varlistentry><term>suppressNullErrors</term><listitem>true/false: should we suppress null errors?</listitem></varlistentry>
+					<varlistentry><term>encoding.url</term><listitem>UTF-8 encoding</listitem></varlistentry>
+					<varlistentry><term>resource.checkModification</term><listitem>true/false: should we check for resource modifications?</listitem></varlistentry>
+					<varlistentry><term>uniqueIdGenerator.*</term><listitem>Unique id generator properties (hudson.zipscript.parser.util.UniqueIdGenerator)</listitem></varlistentry>
+					<varlistentry><term>i18n.*</term><listitem>Message bundle helper properties (hudson.zipscript.parser.util.I18NResource)</listitem></varlistentry>
+					<varlistentry><term>refreshTemplates</term>'true' to always check for new templates and 'false' to not (default is true)</varlistentry>
+				</variablelist>
+			</para>
+		</chapter>
+	</book>
+</set>

@@ -1,0 +1,38 @@
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="../yui_resources/build/fonts/fonts-min.css" />
+		<link rel="stylesheet" type="text/css" href="../yui_resources/build/autocomplete/assets/skins/sam/autocomplete.css" />
+
+		<script type="text/javascript" src="../yui_resources/build/yahoo-dom-event/yahoo-dom-event.js"></script>
+		<script type="text/javascript" src="../yui_resources/build/dragdrop/dragdrop-min.js"></script>
+		<script type="text/javascript" src="../yui_resources/build/element/element-beta-min.js"></script>
+		<script type="text/javascript" src="../yui_resources/build/yahoo-dom-event/yahoo-dom-event.js"></script>
+		<script type="text/javascript" src="../yui_resources/build/autocomplete/autocomplete-min.js"></script>
+	</head>
+	<body class=" yui-skin-sam">
+	<div id="namesAutoComplete">
+		<input id="names" type="text" name="names"/>
+		<div id="namesContainer"></div>
+	</div>
+	<script language="javascript">
+					namesArray = [
+									["jhudson", "Joe Hudson"],									["bbarker", "Bob Barker"],									["jjohnson", "Jimmy Johnson"]							];
+			namesACJSArray = new function() {
+				this.oACDS = new YAHOO.widget.DS_JSArray(namesArray);
+				this.oAutoComp = new YAHOO.widget.AutoComplete("names","namesContainer", this.oACDS); 
+				this.oAutoComp.prehighlightClassName = "yui-ac-prehighlight";
+				this.oAutoComp.typeAhead = true;
+				this.oAutoComp.useShadow = true;
+				this.oAutoComp.minQueryLength = 0;
+				this.oAutoComp.textboxFocusEvent.subscribe(function() { 
+					sInputValue = YAHOO.util.Dom.get(names).value; 
+					if(sInputValue.length == 0) { 
+						oSelf = this; 
+						setTimeout(function(){oSelf.sendQuery(sInputValue);}, 0); 
+					}
+				});
+			}
+			</script>
+
+	</body>
+</html>

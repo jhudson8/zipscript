@@ -1,0 +1,53 @@
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="../yui_resources/build/fonts/fonts-min.css" />
+		<link rel="stylesheet" type="text/css" href="../yui_resources/build/accordionview/assets/skins/sam/reset-fonts.css" />
+		<link rel="stylesheet" type="text/css" href="../yui_resources/build/accordionview/assets/skins/sam/accordionview.css" />
+
+		<script type="text/javascript" src="../yui_resources/build/yahoo-dom-event/yahoo-dom-event.js"></script>
+		<script type="text/javascript" src="../yui_resources/build/dragdrop/dragdrop-min.js"></script>
+		<script type="text/javascript" src="../yui_resources/build/element/element-beta-min.js"></script>
+		<script type="text/javascript" src="../yui_resources/build/accordionview/utilities.js"></script>
+		<script type="text/javascript" src="../yui_resources/build/accordionview/accordionview.js"></script>
+	</head>
+	<body class=" yui-skin-sam">
+
+<style type="text/css">
+	.yui-accordion-content div {
+		padding: 6px;
+	}
+</style>
+
+	<ul id="mymenu5" class="yui-accordionview">
+								<li class="yui-accordion-panel"><a class="yui-accordion-toggle" href="#">Item 1</a>
+				<div class="yui-accordion-content">
+					<div>This is the content of panel 1</div>
+				</div>
+			</li>
+								<li class="yui-accordion-panel"><a class="yui-accordion-toggle" href="#">Item 2</a>
+				<div class="yui-accordion-content">
+					<div>This is the content of panel 2</div>
+				</div>
+			</li>
+								<li class="yui-accordion-panel"><a class="yui-accordion-toggle" href="#">Item 3</a>
+				<div class="yui-accordion-content">
+					<div>This is the content of panel 3</div>
+				</div>
+			</li>
+								<li class="yui-accordion-panel"><a class="yui-accordion-toggle" href="#">Item 4</a>
+				<div class="yui-accordion-content">
+					<div>This is the content of panel 4</div>
+				</div>
+			</li>
+								<li class="yui-accordion-panel"><a class="yui-accordion-toggle" href="#">Item 5</a>
+				<div class="yui-accordion-content">
+					<div>This is the content of panel 5</div>
+				</div>
+			</li>
+			</ul>
+	<script language="javascript"> 
+		new YAHOO.widget.AccordionView('mymenu5', {collapsible: false, width: "250px", expandItem: 2});
+	</script>
+
+	</body>
+</html>

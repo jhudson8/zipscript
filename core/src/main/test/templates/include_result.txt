@@ -1,0 +1,11 @@
+Static include test
+	Here is the static include template
+	Here is the static include template
+	Here is the static include template
+
+Dynamic include test
+	Here is the dynamic include template
+	Here is the dynamic include template
+	Here is the dynamic include template
+	Here is the dynamic include template
+	Here is the dynamic include template

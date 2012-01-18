@@ -1,0 +1,163 @@
+<project name="ZipScript Struts Plugin" default="dist" basedir=".">
+
+	<property name="version" value="1.0.0" />
+	<property name="name" value="zipscript-struts2" />
+
+	<!-- set global properties for this build -->
+	<property name="src" location="src/main/java" />
+	<property name="zipscript-src" location="../ZipScript/src/main/java" />
+	<property name="src-test" location="src/main/test" />
+	<property name="build" location="build" />
+	<property name="build-test" location="build-test" />
+	<property name="dist" location="dist/temp/${name}-${version}" />
+	<property name="distArchive" location="dist/temp" />
+	<property name="archiveOutput" location="dist/${name}-${version}.zip" />
+	<property name="xalan.lib.dir" value="../lib/xalan-2.7.1" />
+	<property name="docbook-xsl" location="../ZipScript Docs/docbook/html" />
+	<property name="docbook-xml.dir" location="src/docs" />
+	<property name="css-src" location="../ZipScript Docs/css/docbook.css" />
+	<property name="css-dest" location="${dist}/docs/guides/style.css" />
+
+	<path id="classpath.test">
+		<pathelement location="../lib/junit-3.8.2.jar" />
+		<pathelement location="${build}" />
+		<pathelement location="${build-test}" />
+	</path>
+
+    <path id="classpath">
+    	<pathelement location="src/main/webapp/WEB-INF/lib/struts2-core-2.0.11.2.jar" />
+    	<pathelement location="src/main/webapp/WEB-INF/lib/xwork-2.0.5.jar" />
+    	<pathelement location="../lib/servlet-api-2.3.jar" />
+    	<pathelement location="../lib/commons-logging-api-1.1.jar" />
+    	<pathelement location="../ZipScript/bin" />
+    </path>
+
+	<path id="src">
+		<pathelement location="src/main/java" />
+		<pathelement location="../ZipScript/src/main/java" />
+		<pathelement location="${build-test}" />
+	</path>
+
+	<path id="xalan.classpath">
+		<fileset dir="${xalan.lib.dir}" id="xalan.fileset">
+			<include name="xalan.jar" />
+			<include name="xercesImpl.jar" />
+			<include name="serializer.jar" />
+		</fileset>
+	</path>
+
+
+	<target name="init">
+		<!-- Create the time stamp -->
+		<tstamp />
+		<!-- Create the build directory structure used by compile -->
+		<mkdir dir="${build}" />
+		<mkdir dir="${build-test}" />
+		<!-- mkdir dir="${dist}/src/test" / -->
+		<mkdir dir="${dist}/src/java" />
+		<mkdir dir="${dist}/docs/api" />
+		<mkdir dir="${dist}/docs/guides" />
+	</target>
+	
+	<target name="generateSiteDocs" depends="clean">
+		<mkdir dir="${dist}/docs/javadoc" />
+		
+		<javadoc destdir="${dist}/docs/javadoc" author="true" version="true" use="true" windowtitle="Zipscript API">
+			<packageset dir="${src}" defaultexcludes="yes">
+			</packageset>
+		</javadoc>
+
+		<xslt style="${docbook-xsl}/chunk.xsl" extension=".html" basedir="${docbook-xml.dir}" destdir="${dist}/docs">
+			<classpath refid="xalan.classpath" />
+			<include name="docbook.xml" />
+			<param name="html.stylesheet" expression="../css/docbook.css" />
+		</xslt>
+	</target>
+
+	<target name="compile-test" depends="compile" description="compile the source ">
+		<!-- Compile the java test code from ${src-test} into ${build} -->
+		<javac srcdir="${src-test}" destdir="${build-test}">
+			<classpath refid="classpath.test" />
+		</javac>
+	</target>
+
+	<target name="build-html" depends="init" description="Generates HTML files from DocBook XML">
+		<xslt style="${docbook-xsl}/chunk.xsl" extension=".html" basedir="${docbook-xml.dir}" destdir="${dist}/docs/guides">
+			<classpath refid="xalan.classpath" />
+			<include name="docbook.xml" />
+			<param name="html.stylesheet" expression="style.css" />
+		</xslt>
+		<!-- Copy the stylesheet to the same directory as the HTML files -->
+		<copy file="${css-src}" toFile="${css-dest}"/>
+	</target>
+
+	<target name="compile" depends="init" description="compile the source ">
+		<!-- Compile the java code from ${src} into ${build} -->
+		<javac srcdir="${src}" destdir="${build}" source="1.5">
+			<classpath refid="classpath" />
+		</javac>
+	</target>
+
+	<target name="test" depends="compile-test" description="test the source ">
+		<copy todir="${build-test}/templates">
+			<fileset dir="${src-test}/templates" />
+		</copy>
+		<junit>
+			<classpath refid="classpath.test" />
+			<formatter type="brief" />
+			<test haltonerror="true" outfile="dist/src/test/BooleanTestCase-results" name="test.hudson.zipscript.BooleanTestCase" />
+			<test haltonerror="true" outfile="dist/src/test/DirectiveTestCase-results" name="test.hudson.zipscript.DirectiveTestCase" />
+			<test haltonerror="true" outfile="dist/src/test/ErrorTestCase-results" name="test.hudson.zipscript.ErrorTestCase" />
+			<test haltonerror="true" outfile="dist/src/test/InitPropertiesTestCase-results" name="test.hudson.zipscript.InitPropertiesTestCase" />
+			<test haltonerror="true" outfile="dist/src/test/ListTestCase-results" name="test.hudson.zipscript.ListTestCase" />
+			<test haltonerror="true" outfile="dist/src/test/LogicTestCase-results" name="test.hudson.zipscript.LogicTestCase" />
+			<test haltonerror="true" outfile="dist/src/test/MacroLibTestCase-results" name="test.hudson.zipscript.MacroLibTestCase" />
+			<test haltonerror="true" outfile="dist/src/test/MacroTestCase-results" name="test.hudson.zipscript.MacroTestCase" />
+			<test haltonerror="true" outfile="dist/src/test/MathTestCase-results" name="test.hudson.zipscript.MathTestCase" />
+			<test haltonerror="true" outfile="dist/src/test/PerformanceTestCase-results" name="test.hudson.zipscript.PerformanceTestCase" />
+			<test haltonerror="true" outfile="dist/src/test/SpecialMethodsTestCase-results" name="test.hudson.zipscript.SpecialMethodsTestCase" />
+			<test haltonerror="true" outfile="dist/src/test/VariableDefaultsTestCase-results" name="test.hudson.zipscript.VariableDefaultsTestCase" />
+			<test haltonerror="true" outfile="dist/src/test/VariableFormattingTestCase-results" name="test.hudson.zipscript.VariableFormattingTestCase" />
+			<test haltonerror="true" outfile="dist/src/test/VariableTestCase-results" name="test.hudson.zipscript.VariableTestCase" />
+			<test haltonerror="true" outfile="dist/src/test/ContextTestCase-results" name="test.hudson.zipscript.ContextTestCase" />
+			<test haltonerror="true" outfile="dist/src/test/XMLTestCase-results" name="test.hudson.zipscript.XMLTestCase" />
+		</junit>
+	</target>
+
+	<target name="dist" depends="clean,compile,javadoc,build-html" description="generate the distribution">
+		<jar jarfile="${dist}/${name}-${version}.jar" basedir="${build}" />
+		<copy todir="${dist}/src/java">
+			<fileset dir="${src}" />
+		</copy>
+		<!--
+		<copy todir="${dist}/src/test">
+			<fileset dir="${src-test}" />
+		</copy>
+		-->
+		<copy todir="${dist}">
+			<fileset dir="src/build" />
+			<filterset>
+				<filter token="VERSION" value="${version}" />
+			</filterset>
+		</copy>
+		<zip destfile="${archiveOutput}" basedir="${distArchive}" />
+
+		<!-- cleanup -->
+		<delete dir="${build}" />
+		<delete dir="${build-test}" />
+		<delete dir="${distArchive}" />
+	</target>
+
+	<target name="javadoc" depends="init">
+		<javadoc destdir="${dist}/docs/api" author="true" version="true" use="true" windowtitle="Zipscript API">
+			<packageset dir="${src}" defaultexcludes="yes"/>
+			<classpath refid="classpath" />
+		</javadoc>
+	</target>
+
+	<target name="clean" description="clean up">
+		<!-- Delete the ${build} and ${dist} directory trees -->
+		<delete dir="${build}" />
+		<delete dir="${dist}" />
+	</target>
+</project>

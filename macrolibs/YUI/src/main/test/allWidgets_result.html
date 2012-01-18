@@ -1,0 +1,101 @@
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="../yui_resources/build/fonts/fonts-min.css" />
+		<link rel="stylesheet" type="text/css" href="../yui_resources/build/tabview/assets/skins/sam/tabview.css" />
+		<link rel="stylesheet" type="text/css" href="../yui_resources/build/datatable/assets/skins/sam/datatable.css" />
+		<link rel="stylesheet" type="text/css" href="../yui_resources/build/treeview/assets/skins/sam/treeview.css" />
+
+		<script type="text/javascript" src="../yui_resources/build/yahoo-dom-event/yahoo-dom-event.js"></script>
+		<script type="text/javascript" src="../yui_resources/build/dragdrop/dragdrop-min.js"></script>
+		<script type="text/javascript" src="../yui_resources/build/element/element-beta-min.js"></script>
+		<script type="text/javascript" src="../yui_resources/build/tabview/tabview-min.js"></script>
+		<script type="text/javascript" src="../yui_resources/build/datasource/datasource-beta-min.js"></script>
+		<script type="text/javascript" src="../yui_resources/build/datatable/datatable-beta-min.js"></script>
+		<script type="text/javascript" src="../yui_resources/build/treeview/treeview-min.js"></script>
+	</head>
+	<body class=" yui-skin-sam">
+<p>
+		<div id="myTab"></div>
+	<script language="javascript">
+		myTab_tab = new YAHOO.widget.TabView('myTab');
+			myTab_tab.addTab( new YAHOO.widget.Tab({
+				label: "Some Page",
+				content: "These are the contents of some page...\r\n			<p\>\r\n				Blah blah blah...\r\n			</p\>",
+				active: true
+				
+			}));
+			myTab_tab.addTab( new YAHOO.widget.Tab({
+				label: "Page \"ABCD\"",
+				content: "This is the contents of page \"ABCD\""				
+			}));
+			myTab_tab.addTab( new YAHOO.widget.Tab({
+				label: "Page 1",
+				content: "This is the contents of page 1"				
+			}));
+			myTab_tab.addTab( new YAHOO.widget.Tab({
+				label: "Page 2",
+				content: "This is the contents of page 2"				
+			}));
+			myTab_tab.addTab( new YAHOO.widget.Tab({
+				label: "Page \"A\"",
+				content: "This is the contents of page \"A\""				
+			}));
+			myTab_tab.addTab( new YAHOO.widget.Tab({
+				label: "Page \"B\"",
+				content: "This is the contents of page \"B\""				
+			}));
+			myTab_tab.addTab( new YAHOO.widget.Tab({
+				label: "Page \"C\"",
+				content: "This is the contents of page \"C\""				
+			}));
+	</script>
+</p>
+
+<p>
+		<div id="myTable"></div>
+	<script language="javascript">
+		myTable_model = {
+    		data: [
+				{firstName: "Bill", lastName: "Cosby", birthday: new Date(1995, 12, 03), accounts: 8, netWorth: 1429978.76000000000931322574615478515625, someHiddenColumn: "It doesn't matter what is here"},
+				{firstName: "Bill", lastName: "Clinton", birthday: new Date(1989, 12, 03), accounts: 4, netWorth: 2875635.209999999962747097015380859375, someHiddenColumn: "It doesn't matter what is here"},
+				{firstName: "Bill", lastName: "Bixby", birthday: new Date(1975, 03, 29), accounts: 3, netWorth: 192879.77999999999883584678173065185546875, someHiddenColumn: "It doesn't matter what is here"},
+				{firstName: "Clark", lastName: "Kent", birthday: new Date(1982, 05, 11), accounts: 1, netWorth: 43987.1900000000023283064365386962890625, someHiddenColumn: "It doesn't matter what is here"}
+		]};
+		myTable_columns = [
+			{key: "firstName", label: "First Name", sortable: true, resizeable: true, width: 150},
+			{key: "lastName", label: "Last Name", sortable: true, resizeable: true, selected: true, width: 150},
+			{key: "birthday", label: "Birthday", sortable: true, resizeable: true, formatter: YAHOO.widget.DataTable.formatDate},
+			{key: "accounts", label: "# Accounts", sortable: true, resizeable: true, formatter: YAHOO.widget.DataTable.formatNumber},
+			{key: "netWorth", label: "Net Worth", sortable: true, resizeable: true, formatter: YAHOO.widget.DataTable.formatCurrency},
+			{key: "someHiddenColumn", label: "Some Hidden Column", sortable: true, resizeable: true, hidden: true}
+		];
+		dataSource = new YAHOO.util.DataSource(myTable_model.data);
+		dataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
+        dataSource.responseSchema = {fields: ["firstName", "lastName", "birthday", "accounts", "netWorth", "someHiddenColumn"]};
+        dataTable = new YAHOO.widget.DataTable("myTable", myTable_columns, dataSource);
+		dataTable.subscribe("rowMouseoverEvent", dataTable.onEventHighlightRow); 
+		dataTable.subscribe("rowMouseoutEvent", dataTable.onEventUnhighlightRow);
+ 
+
+
+	</script>
+</p>
+
+<p>
+		<div id="myTree"> </div>
+	<script language="javascript">
+		myTree_component = new YAHOO.widget.TreeView("myTree");
+		root = myTree_component.getRoot();
+n1_node = new YAHOO.widget.TextNode("Label 1", root, false);
+		n1_1_node = new YAHOO.widget.HTMLNode("Label 1.1", n1_node, false);
+		n1_2_node = new YAHOO.widget.HTMLNode("<span title='This is a tooltip'>Label 1.2</span>", n1_node, false);
+n1_3_node = new YAHOO.widget.TextNode("Label 1.3", n1_node, false);
+		n1_3_1_node = new YAHOO.widget.HTMLNode("Label 1.3.1", n1_3_node, false);
+n2_node = new YAHOO.widget.TextNode("Label 2", root, false);
+		n2_1_node = new YAHOO.widget.HTMLNode("<a href='http://www.google.com'>Label 2.1</a>", n2_node, false);
+		n3_node = new YAHOO.widget.HTMLNode("<a href='http://www.google.com'>Label 3</a>", root, false);
+		myTree_component.draw();
+	</script>
+</p>
+	</body>
+</html>

@@ -1,0 +1,364 @@
+<?xml version='1.0'?>
+<!-- <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd"> -->
+<book id="guide">
+	<bookinfo>
+		<title>ZipScript Struts2 Plugin Guide</title>
+	</bookinfo>
+	<chapter>
+		<title>Installing ZipScript</title>
+		<section>
+			<title>Download Files</title>
+			<para>
+				<itemizedlist>
+					<listitem>Download <ulink url="http://code.google.com/p/zipscript/downloads/list?can=2&amp;q=zipscript-struts2&amp;colspec=Filename+Summary+Uploaded+Size">struts2-zipscript</ulink></listitem>
+					<listitem>Download <ulink url="http://code.google.com/p/zipscript/downloads/list?can=2&amp;q=zipscript-core&amp;colspec=Filename+Summary+Uploaded+Size">zipscript-core</ulink></listitem>
+				</itemizedlist>
+				Unzip both zip files somewhere on your filesystem.
+			</para>
+		</section>
+		<section>
+			<title>Install Files</title>
+			<para>
+				Copy zipscript-core-*.jar and struts-zipscript-*.jar the your WEB-INF/lib directory of your struts application.
+			</para>
+		</section>
+		<section>
+			<title>Add Configuration References</title>
+			<para>
+				Add the following entries to your struts config file (probably struts.xml) under the package node.
+<programlisting>
+&lt;result-types&gt;
+    &lt;result-type name="zipscript" class="org.apache.struts2.views.zipscript.ZipScriptResult"/&gt;
+    &lt;result-type name="zipscriptBody" class="org.apache.struts2.views.zipscript.ZipScriptBodyResult"/&gt;
+    &lt;result-type name="zipscriptLayout" class="org.apache.struts2.views.zipscript.ZipScriptLayoutResult"/&gt;
+&lt;/result-types&gt;
+</programlisting>
+				If you want one of the zipscript results to be used as the default result, use the <emphasis>default=true</emphasis> attribute.
+			</para>
+			<para>
+				That's it!  Now you can use the zipscript responses now.
+			</para>
+		</section>
+	</chapter>
+	<chapter>
+		<title>ZipScript Result Classes</title>
+
+		<section>
+			<title>Template Locations &amp; Directory Structure</title>
+<programlisting>
+WEB-INF
+   |-- zs
+       |-- macros
+       |   |
+       |   |-- templates referenced with [#import .../]
+       |
+       |-- includes
+       |   |
+       |   |-- templates referenced with [#include .../]
+       |
+       |-- layouts
+       |   |
+       |   |-- layout.zs
+       |   |-- page.zs
+       |
+       |-- templates
+           |
+           |-- templates referenced with action definition
+</programlisting>
+			<note>
+				Depending on the result type used, not all of the directory structure will be applicable
+			</note>
+		</section>
+		<section>
+			<title>ZipScriptResult</title>
+			<para>
+				This is the most basic of results.  Your template will be rendered with no wrapper layout.
+				Assume you have an action result like this:
+<programlisting>
+&lt;action name="myAction" class="my.Action"&gt;
+    &lt;result name="success" type="zipscript"&gt;foo.zs&lt;/result&gt;
+&lt;/action&gt;
+</programlisting>
+				The template located at <emphasis>/WEB-INF/zs/templates/foo.zs</emphasis> will be used
+				to render the response.
+			</para>
+			<para>
+				This is beneficial for data-oriented templates.  For example, if you are returning XML
+				or JSON... you would use this response.
+			</para>
+			<note>
+				The WEB-INF/zs/layouts directory structure is not applicable to this result.
+			</note>
+			<note>
+				View javadoc for <ulink url="../api/org/apache/struts2/views/zipscript/ZipScriptResult.html">org.apache.struts2.views.zipscript.ZipScriptResult</ulink>
+			</note>
+		</section>
+		<section id="ZipScriptBodyResult">
+			<title>ZipScriptBodyResult</title>
+			This result will wrap the requested template in a page template.
+				<para>
+				Assume you have an action result like this:
+<programlisting>
+&lt;action name="myAction" class="my.Action"&gt;
+    &lt;result name="success" type="zipscriptBody"&gt;foo.zs&lt;/result&gt;
+&lt;/action&gt;
+</programlisting>
+				The template located at <emphasis>/WEB-INF/zs/templates/foo.zs</emphasis> will be placed into the
+				context to be referenced as ${layout_placeholder} in the page template which is WEB-INF/zs/layouts/page.zs.
+				Here is an example page template:
+<programlisting>
+&lt;html&gt;
+	&lt;head>
+		&lt;title&gt;${title!"Some Default Title"}&lt;/title&gt;
+		[#f null != pageDefinedScript]
+			&lt;script language="javascript"&gt;
+				${pageDefinedScript}
+			&lt;/script&gt;
+		[/#if]
+	&lt;/head&gt;
+	&lt;body&gt;
+		${layout_placeholder}  &lt;-- this is the token used to plug in the other templates in page.zs
+	&lt;/body&gt;
+&lt;/html&gt;
+</programlisting>
+				As you can see, a context variable is being used by the page title.  This can obviously be set in the context
+				before processing but it can also be set in your template using the initialize directive.  See the example foo.zs template:
+<programlisting>
+[#initialize]
+	[#set title="My Page Title"/]
+[/#initialize]
+
+... some HTML or ZipScript code ...
+</programlisting>
+				In our template, we have set the page title.  This value is referenced from the page.zs
+				template which is actually processed before the foo.zs template.  It happens this way so we don't have to do any template buffering.
+				The initialize directive is the key to this functionality but you have to remember that anything in the initialize directive is only
+				executed a single time (think of it like a static initializer) so you can not reference context data set in the template (but you can
+				reference context data set before merging) and you can not reference macro parameters either.
+			</para>
+			<para>
+				This result is useful for rendering pages that can share the same head template with other templates with a layout.  For example,
+				if a page were to be used as some sort of dialog (in a new window) or content inside of an iframe.
+			</para>
+			<note>
+				View javadoc for <ulink url="../api/org/apache/struts2/views/zipscript/ZipScriptBodyResult.html">org.apache.struts2.views.zipscript.ZipScriptBodyResult</ulink>
+			</note>
+		</section>
+		<section>
+			<title>ZipScriptLayoutResult</title>
+			<note>
+				See <link linkend="ZipScriptBodyResult">ZipScriptBodyResult</link> to understand the structure of this result.
+			</note>
+			<para>
+				The differences between this result and <link linkend="ZipScriptBodyResult">ZipScriptBodyResult</link> are as follows:
+				<itemizedlist>
+					<listitem>A layout template is added inside of the page.zs called layout.zs (in WEB-INF/zs/layouts)</listitem>
+					<listitem>The context variable ${screen_placeholder} can be used to reference the action template content</listitem>
+				</itemizedlist>
+			</para>
+			<para>
+				The page.zs template is shared between the <link linkend="ZipScriptBodyResult">ZipScriptBodyResult</link> and this result
+				so we will only show an example of the additional layout.zs template:
+<programlisting>
+&lt;table&gt;
+	&lt;tr&gt;
+		&lt;td colspan="2"&gt;
+			[#include "header.zs"/]
+		&lt;/td&gt;
+	&lt;/tr&gt;
+	&lt;tr&gt;
+		&lt;td&gt;
+			[#include "nav.zs"/]
+		&lt;/td&gt;
+		&lt;td&gt;
+			${screen_placeholder} &lt;-- this is the token used to plug in the other templates in layout.zs
+		&lt;/td&gt;
+	&lt;/tr&gt;
+	&lt;tr&gt;
+		&lt;td colspan="2"&gt;
+			[#include "footer.zs"/]
+		&lt;/td&gt;
+	&lt;/tr&gt;
+&lt;/table&gt;
+</programlisting>
+			</para>
+			<para>
+				This result is useful to have a common layout used by multiple templates.
+			</para>
+			<note>
+				The include directives will include zipscript templates located in WEB-INF/zs/includes
+			</note>
+			<note>
+				View javadoc for <ulink url="../api/org/apache/struts2/views/zipscript/ZipScriptLayoutResult.html">org.apache.struts2.views.zipscript.ZipScriptLayoutResult</ulink>
+			</note>
+		</section>
+		<section>
+			<title>Overriding Defaults</title>
+			Much of the functionality here can be overridden.  Obviously you could extend the result classes
+			but you can also use servlet/filter init parameters as well.  Listed below are availabe init parameters:
+			<variablelist>
+				<varlistentry><term>zipscript.rootDirectory</term><listitem>Root template directory (defaults to "zs/")</listitem></varlistentry>
+				<varlistentry><term>zipscript.includesDirectory</term><listitem>Location of include templates under the root directory (defaults to "includes/")</listitem></varlistentry>
+				<varlistentry><term>zipscript.macrosDirectory</term><listitem>Location of macro templates under the root directory (defaults to "macros/")</listitem></varlistentry>
+				<varlistentry><term>zipscript.autoImport</term><listitem>Comma separated list of macro libraries to be imported (so templates do not have to call [#import .../])</listitem></varlistentry>
+			</variablelist>
+			<note>
+				Any other zipscript init parameters can be referenced as a servlet/filter init parameter but they must be prefixed with "zipscript."
+			</note>
+			<para>
+				There are cases, however, that configuration can't be done at an application level.  To address this, action-level configuration entries can be entered.
+				This is an action definition with action-level parameters:
+<programlisting>
+&lt;action name="myAction" class="my.Action"&gt;
+    &lt;result name="success" type="zipscriptLayout"&gt;[layout=newLayout.zs; page=newPage.zs] foo.zs&lt;/result&gt;
+&lt;/action&gt;
+</programlisting>
+				We have defined an alternative page template (newPage.zs) and an alternative layout template (newLayout.zs).
+				Any additional parameters specified can be accessed using the <emphasis>Layout</emphasis> context variable.
+			</para>
+			<para>
+				Assuming we have an additional parameter specified: "[foo=bar; layout=newLayout.zs; page=newPage.zs]"
+<programlisting>
+	${Layout.bar} &lt;-- this is how you access additional layout parameters in your template
+</programlisting>
+			</para>
+		</section>
+	</chapter>
+	<chapter>
+		<title>Automatic Variables</title>
+		<section>
+			<title>Overview</title>
+			Aside from the standard <ulink url="http://www.zipscript.org/docs/current/bk01ch02s02.html">automatic variables</ulink>.  There are additional variables that you always get in the context.
+			<variablelist>
+				<varlistentry><term>Action</term><listitem>The struts action</listitem></varlistentry>
+				<varlistentry><term>Session</term><listitem>The HTTP session</listitem></varlistentry>
+				<varlistentry><term>Request</term><listitem>The HTTP request</listitem></varlistentry>
+				<varlistentry><term>Response</term><listitem>The HTTP response</listitem></varlistentry>
+				<varlistentry><term>Layout</term><listitem>Any action-specific layout properties that are defined</listitem></varlistentry>
+				<varlistentry><term>Params</term><listitem>Quick access to request parameters</listitem></varlistentry>
+			</variablelist>
+			<para>
+				Here is example template content that references these variables:
+<programlisting>
+	...
+		${Params.someParam} &lt;-- prints return value of request.getParameter("someParam")
+		[#foreach entry in Params.values("someParam")]
+			This is how we would iterate through entries in request.getParameterValues("someParam")
+		[/#foreach]
+		${Action.someBeanProperty} &lt;-- Access getSomeBeanProperty() on your struts action
+		${Session("someSessionAttribute")} &lt;-- prints return value of session().getAttribute("someSessionAttribute")
+		${Request.pathInfo} &lt;-- prints return value of request.getPathInfo()
+		${Layout.foo} &lt;-- prints "bar" if action result equalted to &lt;result ...&gt;[foo=bar; ...] myTemplate.zs&lt;/result&gt;
+	...
+</programlisting>
+			</para>
+		</section>
+	</chapter>
+	<chapter>
+		<title>Loading the Context</title>
+		<section>
+			<title>Overview</title>
+			The context can be loaded in 3 ways
+			<itemizedlist>
+				<listitem>Add getWhatever() methods to your action</listitem>
+				<listitem>Call request.setAttribute(...) from your action</listitem>
+				<listitem>Extend a result class and override loadContext(Context)</listitem>
+			</itemizedlist>
+			<para>
+				Assuming we have the following action code
+<programlisting>
+	public String getAbc () {
+		return "def";
+	}
+
+	public String execute() throws Exception {
+		request.setAttribute("foo", "bar");
+		return SUCCESS;
+	}
+</programlisting>
+				We will be able to create a template that looks like this:
+<programlisting>
+	${abc} &lt;-- because we have getAbc() as a method in our action class
+	${foo} &lt;-- because we set the request attribute "foo"
+</programlisting>
+			</para>
+		</section>
+	</chapter>
+	<chapter>
+		<title>Using the Yahoo! UI Macros</title>
+		<section>
+			<title>Download &amp; Install Files</title>
+			<para>
+				<itemizedlist>
+					<listitem>Download <ulink url="http://code.google.com/p/zipscript/downloads/list?can=2&amp;q=macrolib-YUI&amp;colspec=Filename+Summary+Uploaded+Size">macrolib-YUI</ulink></listitem>
+				</itemizedlist>
+				Extract all macro files (*.zsm) to your macros directory (WEB-INF/zs/macros)
+			</para>
+		</section>
+		<section>
+			<title>Add script includes</title>
+			Each macro will add includes to a map that is automatically put into the context.  The reson for this is so you only have to include javascript files that are applicable to the
+			YUI components you are using with the current template.  Add the following code to your page template:
+<programlisting>
+&lt;html&gt;
+	&lt;head&gt;
+		...
+		
+		&lt;link rel="stylesheet" type="text/css" href="${yuiIncludePrefix}/fonts/fonts-min.css" /&gt;
+[#foreach key in cssIncludes?keys]
+		&lt;link rel="stylesheet" type="text/css" href="${yuiIncludePrefix}/${key}" /&gt;
+[/#foreach]
+		&lt;script type="text/javascript" src="${yuiIncludePrefix}/yahoo-dom-event/yahoo-dom-event.js"&gt;&lt;/script&gt;
+		&lt;script type="text/javascript" src="${yuiIncludePrefix}/dragdrop/dragdrop-min.js"&gt;&lt;/script&gt;
+		&lt;script type="text/javascript" src="${yuiIncludePrefix}/element/element-beta-min.js"&gt;&lt;/script&gt;
+[#foreach key in scriptIncludes?keys]
+		&lt;script type="text/javascript" src="${yuiIncludePrefix}/${key}"&gt;&lt;/script&gt;
+[/#foreach]
+
+		...
+	&lt;/head&gt;
+	&lt;body class=" yui-skin-sam"&gt;
+		${layout_placeholder}
+	&lt;/body&gt;
+&lt;/html&gt;
+</programlisting>
+		</section>
+		<section>
+			<title>Add Init Property</title>
+			<para>
+				The context parameter "yuiIncludePrefix" should reference the yahoo scripts build root.
+				Most likely you will have a local copy of this but, for example, you can use "http://yui.yahooapis.com/2.5.2/build"
+			</para>
+			<para>
+				This can be done by adding a struts servlet/filter init parameter called <emphasis>zipscript.contextValues</emphasis>.
+				The value can be a semi-colon separated list of key/value pares using the equal sign for key/value separation.
+<programlisting>
+    <filter>
+        <filter-name>struts2</filter-name>
+        <filter-class>
+            org.apache.struts2.dispatcher.FilterDispatcher
+        </filter-class>
+
+        <init-param>
+            <param-name>zipscript.contextValues</param-name>
+            <param-value>yuiIncludePrefix=http://yui.yahooapis.com/2.5.2/build</param-value>
+        </init-param>
+    </filter>
+</programlisting>
+			You're done.  Now you can create a template that uses the macros...
+<programlisting>
+[#import tab.zsm as tab/]
+
+[@tab:pane id="myTabPane"]
+	[%page label="Page 1"]
+		Page 1 contents
+	[/%page]
+	[%page label="Page 2"]
+		Page 2 contents
+	[/%page]
+[/@tab:pane]
+</programlisting>
+			</para>
+		</section>
+	</chapter>
+</book>

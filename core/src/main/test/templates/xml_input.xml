@@ -1,0 +1,24 @@
+<person firstName="Joe" lastName="Hudson">
+	<company name="Acme Company">
+		<employee isGood="true">
+			<firstName>Jerry</firstName>
+			<lastName>Smith</lastName>
+		</employee>
+		<employee isGood="true">
+			<firstName>Jimmy</firstName>
+			<lastName>Doe</lastName>
+		</employee>
+	</company>
+	<car>Honda</car>
+	<children>
+		<child>
+			<firstName>Billy</firstName>
+		</child>
+		<child>
+			<firstName>Sarah</firstName>
+		</child>
+		<child>
+			<firstName>Clark</firstName>
+		</child>
+	</children>
+</person>

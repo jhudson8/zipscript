@@ -1,0 +1,42 @@
+3 - 0 - true
+4.0 - 1 - true
+5.0 - 2 - true
+6 - 3 - true
+7 - 4 - true
+8 - 5 - true
+some text - 6 - true
+true - 7 - true
+false - 8 - false
+
+foo - 0 - true
+7.0 - 1 - true
+false - 2 - false
+
+foo: 0, true
+	bar: 0, true
+		boo: 0,	boo: 1,	boo: 2	
+	bar: 1, true
+		boo: 0,	boo: 1,	boo: 2	
+	bar: 2, false
+		boo: 0,	boo: 1,	boo: 2	
+foo: 1, true
+	bar: 0, true
+		boo: 0,	boo: 1,	boo: 2	
+	bar: 1, true
+		boo: 0,	boo: 1,	boo: 2	
+	bar: 2, false
+		boo: 0,	boo: 1,	boo: 2	
+foo: 2, false
+	bar: 0, true
+		boo: 0,	boo: 1,	boo: 2	
+	bar: 1, true
+		boo: 0,	boo: 1,	boo: 2	
+	bar: 2, false
+		boo: 0,	boo: 1,	boo: 2	
+
+	--> a
+	--> b
+
+	--> a
+	--> c
+	--> d
